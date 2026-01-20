@@ -5,13 +5,13 @@ namespace ECommerce.Models.Domain
 {
     public class CartItem : Entity
     {
-        public Guid CartId { get; set; }
+        public required Guid CartId { get; set; }
         public Cart Cart { get; set; } = null!;
 
-        public Guid ProductId { get; set; }
+        public required Guid ProductId { get; set; }
         public Product Product { get; set; } = null!;
 
-        public int Count { get; set; }
+        public int Count { get; set; } = 0;
     }
 
     public class CartItemConfiguration : EntityConfiguration<CartItem>

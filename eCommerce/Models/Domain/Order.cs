@@ -11,17 +11,17 @@ namespace ECommerce.Models.Domain
     }
     public class Order : Entity
     {
-        public Guid ProductId { get; set; }
-        public required Product Product { get; set; }
+        public required Guid ProductId { get; set; }
+        public Product Product { get; set; }
 
-        public Guid BuyerId { get; set; }
-        public required Buyer Buyer { get; set; }
+        public required Guid BuyerId { get; set; }
+        public Buyer Buyer { get; set; }
 
         public Guid SellerId { get; set; }
-        public required Seller Seller { get; set; }
+        public Seller Seller { get; set; }
 
         public Guid TransactionId { get; set; }
-        public required Transaction Transaction { get; set; }
+        public Transaction Transaction { get; set; }
 
         public required int Count { get; set; }
         public required string Address { get; set; }

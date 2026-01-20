@@ -5,10 +5,10 @@ namespace ECommerce.Models.Domain
 {
     public class Seller : Entity
     {
-        public string Name { get; set; } = null!;
-        public string Email { get; set; } = null!;
-        public string PasswordHash { get; set; } = null!;
-        public string Ban { get; set; } = null!;
+        public required string Name { get; set; } = null!;
+        public required string Email { get; set; } = null!;
+        public required string PasswordHash { get; set; } = null!;
+        public required string Ban { get; set; } = null!;
         public ICollection<Product> Products { get; set;} = new List<Product>();
     }
 

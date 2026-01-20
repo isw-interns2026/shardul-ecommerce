@@ -1,11 +1,17 @@
+using ECommerce;
 using ECommerce.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-Console.WriteLine("Hello world");	
-builder.Services.AddControllers();	
+////builder.Services.AddScoped<DbTransactionFilter>();
+
+// Add services to the container.	
+builder.Services.AddControllers(options =>
+{
+    ////options.Filters.Add<DbTransactionFilter>();
+});
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
@@ -19,6 +25,7 @@ var connectionString =
 
 builder.Services.AddDbContext<ECommerceDbContext>(options =>
     options.UseNpgsql(connectionString));
+
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -35,15 +42,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ECommerceDbContext>();
-
-    if (db.Database.CanConnect())
-    {
-        Console.WriteLine("Database connection successful");
-    }
-    else
-    {
-        Console.WriteLine("Database connection failed");
-    }
+    Console.WriteLine(db.Database.CanConnect() ? "Database connection successful" : "Database connection failed");
 }
 
 // Configure the HTTP request pipeline.
@@ -52,7 +51,24 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
     app.MapOpenApi();
+    app.UseDeveloperExceptionPage();
 }
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/problem+json";
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            title = "Internal server error",
+            status = 500
+        });
+    });
+});
+
 
 app.UseHttpsRedirection();
 

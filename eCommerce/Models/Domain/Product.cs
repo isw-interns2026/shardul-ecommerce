@@ -6,22 +6,22 @@ namespace ECommerce.Models.Domain
 {
     public class Product : Entity
     {
-        public Guid SellerId { get; set; }
+        public required Guid SellerId { get; set; }
         public Seller Seller { get; set; }
 
-        public string Sku { get; set; }
+        public required string Sku { get; set; }
 
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public decimal Price { get; set; }
+        public required decimal Price { get; set; }
 
-        public int CountInStock { get; set; }
+        public required int CountInStock { get; set; }
 
         public string? Description { get; set; }
 
         public byte[]? Images { get; set; }
 
-        public bool IsListed { get; set; }
+        public required bool IsListed { get; set; }
     }
 
     public class ProductConfiguration : EntityConfiguration<Product>

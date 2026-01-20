@@ -10,7 +10,7 @@ namespace ECommerce.Models.Domain
     public class Transaction : Entity
     {
         public required Guid SellerId { get; set; }
-        public required Seller Seller { get; set; }
+        public Seller Seller { get; set; }
 
         public required decimal Amount { get; set; }
 
