@@ -1,6 +1,9 @@
-using ECommerce;
 using ECommerce.Data;
+using ECommerce.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +14,33 @@ builder.Services.AddControllers(options =>
 {
     ////options.Filters.Add<DbTransactionFilter>();
 });
+
+builder.Services.AddScoped<IAuthRepository, SQLAuthRepository>();
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = builder.Configuration["JWT:Issuer"],
+            ValidAudience = builder.Configuration["JWT:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"])
+            ),
+        };
+    });
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("BuyerOnly", policy => policy.RequireRole("Buyer"))
+    .AddPolicy("SellerOnly", policy => policy.RequireRole("Seller"));
+
+
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -28,14 +58,7 @@ builder.Services.AddDbContext<ECommerceDbContext>(options =>
 
 
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-
-var logger = LoggerFactory.Create(config =>
-{
-    config.AddConsole();
-}).CreateLogger("Startup");
-
-logger.LogInformation("Hello from logger");   
+builder.Logging.AddConsole();   
 
 var app = builder.Build();
 
@@ -71,6 +94,8 @@ app.UseExceptionHandler(errorApp =>
 
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

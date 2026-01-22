@@ -1,8 +1,8 @@
-﻿using ECommerce.Data;
-using ECommerce.Models.Domain;
-using ECommerce.Models.DTO.Auth;
-using Microsoft.AspNetCore.Identity;
+﻿using ECommerce.Models.DTO.Auth;
+using ECommerce.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace ECommerce.Controllers
 {
@@ -10,11 +10,11 @@ namespace ECommerce.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly ECommerceDbContext dbContext;
+        private readonly IAuthRepository authRepository;
 
-        public AuthController(ECommerceDbContext dbContext)
+        public AuthController(IAuthRepository authRepository)
         {
-            this.dbContext = dbContext;
+            this.authRepository = authRepository;
         }
 
         [HttpPost("buyer/register")]
@@ -29,15 +29,16 @@ namespace ECommerce.Controllers
                 address: Dto.Address
                 );
 
-            dbContext.Add(newBuyer);
             try
             {
-                dbContext.SaveChanges();
+                await authRepository.CreateBuyerAsync(newBuyer);
             }
-            catch
+            catch (DbUpdateException ex)
+                when (ex.InnerException is PostgresException pg && pg.SqlState == PostgresErrorCodes.UniqueViolation)
             {
-                return BadRequest("Email already exists.");
+                return Conflict("Email already exists.");
             }
+
             return Ok("Buyer created.");
         }
 
@@ -54,16 +55,44 @@ namespace ECommerce.Controllers
                 Ban = Dto.Ban
             };
 
-            dbContext.Add(newSeller);
             try
             {
-                dbContext.SaveChanges();
+                await authRepository.CreateSellerAsync(newSeller);
             }
-            catch
+            catch (DbUpdateException ex)
+                when (ex.InnerException is PostgresException pg && pg.SqlState == PostgresErrorCodes.UniqueViolation)
             {
-                return BadRequest("Email already exists.");
+                return Conflict("Email already exists.");
             }
+
             return Ok("Seller created.");
+        }
+
+
+        [HttpPost("buyer/login")]
+        public async Task<IActionResult> LoginBuyer([FromBody] LoginRequestDto Dto)
+        {
+            var buyer = await authRepository.GetBuyerIfValidCredentialsAsync(email: Dto.Email, password: Dto.Password);
+
+            if (buyer is null)
+                return Unauthorized();
+
+            var accessToken = authRepository.GenerateJWT(userId: buyer.Id.ToString(), email: buyer.Email, name: buyer.Name, role: "Buyer");
+
+            return Ok(new { accessToken });
+        }
+
+        [HttpPost("seller/login")]
+        public async Task<IActionResult> LoginSeller([FromBody] LoginRequestDto Dto)
+        {
+            var seller = await authRepository.GetSellerIfValidCredentialsAsync(email: Dto.Email, password: Dto.Password);
+
+            if (seller is null)
+                return Unauthorized();
+
+            var accessToken = authRepository.GenerateJWT(userId: seller.Id.ToString(), email: seller.Email, name: seller.Name, role: "Seller");
+
+            return Ok(new { accessToken });
         }
     }
 }
