@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using ECommerce.Models.Domain.Entities;
-using ECommerce.Models.Domain.Exceptions;
 using ECommerce.Repositories.Interfaces;
 using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -69,18 +68,7 @@ namespace ECommerce.Controllers.Buyer
 
             Transaction t = await transactionRepository.CreateTransactionForCartItems(cartItems);
 
-            foreach (var ci in cartItems)
-            {
-                try
-                {
-                    ci.Product.CountInStock -= ci.Count;
-                    await cartRepository.SaveChangesAsync();
-                }
-                catch
-                {
-                    throw new InsufficientStockException(ci.Product);
-                }
-            }
+            await cartRepository.SubtractCartItemsFromProductStock(cartItems);
 
             await ordersRepository.CreateOrdersForTransaction(cartItems: cartItems, buyer: b, transaction: t);
 

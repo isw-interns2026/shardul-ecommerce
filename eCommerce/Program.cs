@@ -14,6 +14,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 builder.Services.AddScoped<DbTransactionFilter>();
 
 // Add services to the container.	
@@ -21,6 +32,7 @@ builder.Services.AddControllers(options =>
 {
     options.Filters.Add<DbTransactionFilter>();
 });
+
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IOrdersRepository, OrdersRepository>();
@@ -85,6 +97,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ECommerceDbContext>();
     Console.WriteLine(db.Database.CanConnect() ? "Database connection successful" : "Database connection failed");
 }
+
+app.UseCors();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -79,9 +79,20 @@ namespace ECommerce.Repositories.Implementations
             return b;
         }
 
-        public async Task SaveChangesAsync()
+        public async Task SubtractCartItemsFromProductStock(List<CartItem> cartItems)
         {
-            await dbContext.SaveChangesAsync();
+            foreach (var ci in cartItems)
+            {
+                try
+                {
+                    ci.Product.CountInStock -= ci.Count;
+                    await dbContext.SaveChangesAsync();
+                }
+                catch
+                {
+                    throw new InsufficientStockException(ci.Product);
+                }
+            }
         }
     }
 }
