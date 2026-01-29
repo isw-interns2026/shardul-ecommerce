@@ -29,7 +29,7 @@ namespace ECommerce.Controllers.Seller
         [HttpGet]
         public async Task<IActionResult> GetAllSellerProducts()
         {
-            List<Product> products = await productsRepository.GetProductsAsync(sellerIds: [sellerId]);
+            List<Product> products = await productsRepository.GetProductsBySellerIdAsync(sellerIds: [sellerId]);
 
             var sellerProductResponseDtos = new List<SellerProductResponseDto>();
 
@@ -42,7 +42,7 @@ namespace ECommerce.Controllers.Seller
         [HttpGet("{productId}")]
         public async Task<IActionResult> GetSellerProductByProductID([FromRoute] Guid productId)
         {
-            Product? product = (await productsRepository.GetProductsAsync(productIds: [productId], sellerIds: [sellerId])).FirstOrDefault();
+            Product? product = (await productsRepository.GetProductsBySellerIdAsync(productIds: [productId], sellerIds: [sellerId])).FirstOrDefault();
 
             if (product is null) return NotFound();
 
@@ -53,7 +53,7 @@ namespace ECommerce.Controllers.Seller
         [HttpPatch("{productId}")]
         public async Task<IActionResult> UpdateProduct([FromRoute] Guid productId, [FromBody] UpdateProductDto updateProductDto)
         {
-            Product? product = (await productsRepository.GetProductsAsync(productIds: [productId], sellerIds: [sellerId])).FirstOrDefault();
+            Product? product = (await productsRepository.GetProductsBySellerIdAsync(productIds: [productId], sellerIds: [sellerId])).FirstOrDefault();
 
             if (product is null) return NotFound();
 

@@ -15,7 +15,7 @@ namespace ECommerce.Repositories.Implementations
             this.dbContext = dbContext;
         }
 
-        public async Task<List<Product>> GetProductsAsync(
+        public async Task<List<Product>> GetProductsBySellerIdAsync(
             IReadOnlyCollection<Guid>? sellerIds = null,
             IReadOnlyCollection<Guid>? productIds = null
             )
@@ -48,6 +48,16 @@ namespace ECommerce.Repositories.Implementations
         public async Task SaveChangesAsync()
         {
             await dbContext.SaveChangesAsync();
+        }
+
+        public async Task<List<Product>> GetAllProductsAsync()
+        {
+            return await dbContext.Products.ToListAsync();
+        }
+
+        public async Task<Product?> GetProductsByIdAsync(Guid productId)
+        {
+            return await dbContext.Products.Where(product => product.Id == productId).FirstOrDefaultAsync();
         }
     }
 }
