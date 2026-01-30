@@ -40,7 +40,7 @@ builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
-builder.Services.AddAutoMapper(cfg => { }, typeof(OrderMappingProfile), typeof(ProductMappingProfile));
+builder.Services.AddAutoMapper(cfg => { }, typeof(OrderMappingProfile), typeof(ProductMappingProfile), typeof(CartMappingProfile));
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -10,7 +10,7 @@ namespace ECommerce.Repositories.Interfaces
             );
 
         Task<List<Product>> GetAllProductsAsync();
-        Task<Product?> GetProductsByIdAsync(Guid productId);
+        Task<Product?> GetListedProductsByIdAsync(Guid productId);
         Task CreateProductAsync(Product product);
 
         Task SaveChangesAsync();

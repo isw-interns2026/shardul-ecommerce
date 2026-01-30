@@ -40,7 +40,7 @@ namespace ECommerce.Controllers.Buyer
         [HttpGet("{productId}")]
         public async Task<IActionResult> GetProductByProductID([FromRoute] Guid productId)
         {
-            Product? product = await productsRepository.GetProductsByIdAsync(productId);
+            Product? product = await productsRepository.GetListedProductsByIdAsync(productId);
 
             if (product is null) return NotFound();
 

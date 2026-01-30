@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ECommerce.Models.Domain.Entities;
+using ECommerce.Models.DTO.Buyer;
 using ECommerce.Repositories.Interfaces;
 using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -37,7 +38,17 @@ namespace ECommerce.Controllers.Buyer
         public async Task<IActionResult> GetCartItems()
         {
             List<CartItem> cartItems = await cartRepository.GetBuyerCartItemsAsync(buyerId);
-            return Ok(cartItems);
+
+            var buyerCartItemResponseDtos = new List<BuyerCartItemResponseDto>();
+
+            foreach (var cartItem in cartItems)
+            {
+                var cartItemResponseDto = mapper.Map<BuyerCartItemResponseDto>(cartItem.Product);
+                cartItemResponseDto.CountInCart = cartItem.Count;
+                buyerCartItemResponseDtos.Add(cartItemResponseDto);
+            }
+
+            return Ok(buyerCartItemResponseDtos);
         }
 
         [HttpPost("{productId}")]

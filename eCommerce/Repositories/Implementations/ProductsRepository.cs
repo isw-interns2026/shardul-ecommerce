@@ -55,9 +55,9 @@ namespace ECommerce.Repositories.Implementations
             return await dbContext.Products.ToListAsync();
         }
 
-        public async Task<Product?> GetProductsByIdAsync(Guid productId)
+        public async Task<Product?> GetListedProductsByIdAsync(Guid productId)
         {
-            return await dbContext.Products.Where(product => product.Id == productId).FirstOrDefaultAsync();
+            return await dbContext.Products.Where(product => product.Id == productId && product.IsListed == true).FirstOrDefaultAsync();
         }
     }
 }

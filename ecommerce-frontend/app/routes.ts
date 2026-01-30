@@ -7,6 +7,7 @@ export default [
     // route("auth/buyer/register", "routes/auth/buyer_register.tsx"),
     // route("auth/seller/register", "routes/auth/seller_register.tsx")
     ...prefix("/buyer", [
-        index("routes/buyer/home.tsx")
+        index("routes/buyer/buyer_home.tsx"),
+        route("/products/:productId", "routes/buyer/view_product.tsx")
     ]),
 ] satisfies RouteConfig;
