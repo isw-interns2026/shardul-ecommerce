@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Controllers.Buyer
 {
-
     [Route("buyer/cart")]
     [ApiController]
     [Authorize(Roles = "Buyer")]
@@ -18,18 +17,21 @@ namespace ECommerce.Controllers.Buyer
         private readonly ICartRepository cartRepository;
         private readonly IOrdersRepository ordersRepository;
         private readonly ITransactionRepository transactionRepository;
+        private readonly IStockReservationService stockReservationService;
         private readonly IMapper mapper;
 
         public BuyerCartController(
             ICartRepository cartRepository,
             IOrdersRepository ordersRepository,
             ITransactionRepository transactionRepository,
+            IStockReservationService stockReservationService,
             IMapper mapper,
             ICurrentUser currentUser)
         {
             this.cartRepository = cartRepository;
             this.ordersRepository = ordersRepository;
             this.transactionRepository = transactionRepository;
+            this.stockReservationService = stockReservationService;
             this.mapper = mapper;
             buyerId = currentUser.UserId;
         }
@@ -77,15 +79,17 @@ namespace ECommerce.Controllers.Buyer
             List<CartItem> cartItems = await cartRepository.GetBuyerCartItemsAsync(buyerId);
             Models.Domain.Entities.Buyer b = await cartRepository.GetBuyerById(buyerId);
 
+            // 1. Reserve stock — throws InsufficientStockException if unavailable
+            await stockReservationService.ReserveStockForCartItems(cartItems);
+
+            // 2. Create transaction (status = Processing)
             Transaction t = await transactionRepository.CreateTransactionForCartItems(cartItems);
 
-            await cartRepository.SubtractCartItemsFromProductStock(cartItems);
-
+            // 3. Create orders (status = AwaitingPayment)
             await ordersRepository.CreateOrdersForTransaction(cartItems: cartItems, buyer: b, transaction: t);
 
-            //TODO: Call transaction payment handler with transaction id.
-
-            return Ok();
+            // 4. TODO: Create Stripe Checkout Session and return URL
+            return Ok(new { transactionId = t.Id });
         }
     }
 }

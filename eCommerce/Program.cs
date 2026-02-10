@@ -11,6 +11,10 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TickerQ.Dashboard.DependencyInjection;
+using TickerQ.DependencyInjection;
+using TickerQ.EntityFrameworkCore.DbContextFactory;
+using TickerQ.EntityFrameworkCore.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +43,53 @@ builder.Services.AddScoped<IOrdersRepository, OrdersRepository>();
 builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+
+builder.Services.AddScoped<IStockReservationService, StockReservationService>();
+
+
+var connStringKey = "PgConnString";
+var connectionString =
+    builder.Configuration.GetConnectionString(connStringKey)
+        ?? throw new InvalidOperationException("Connection string"
+        + connStringKey + " not found.");
+
+builder.Services.AddDbContext<ECommerceDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// --- TickerQ with its own built-in DbContext ---
+builder.Services.AddTickerQ(options =>
+{
+    options.ConfigureScheduler(scheduler =>
+    {
+        scheduler.MaxConcurrency = 8;
+    });
+
+    options.AddOperationalStore(efOptions =>
+    {
+
+        efOptions.UseTickerQDbContext<TickerQDbContext>(optionsBuilder =>
+        {
+            optionsBuilder.UseNpgsql(connectionString,
+                cfg =>
+                {
+                    cfg.MigrationsAssembly(typeof(Program).Assembly.GetName().Name);
+                    cfg.EnableRetryOnFailure(3, TimeSpan.FromSeconds(5), ["40P01"]);
+                });
+        }, schema: "ticker");
+
+        efOptions.SetDbContextPoolSize(34);
+    });
+
+    // Dashboard — only in development
+    if (builder.Environment.IsDevelopment())
+    {
+        options.AddDashboard(dashOpt =>
+        {
+            dashOpt.SetBasePath("/tickerq-dashboard");
+        });
+    }
+});
+
 
 builder.Services.AddAutoMapper(cfg => { }, typeof(OrderMappingProfile), typeof(ProductMappingProfile), typeof(CartMappingProfile));
 
@@ -76,16 +127,6 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-var connStringKey = "PgConnString";
-var connectionString =
-    builder.Configuration.GetConnectionString(connStringKey)
-        ?? throw new InvalidOperationException("Connection string"
-        + connStringKey + " not found.");
-
-builder.Services.AddDbContext<ECommerceDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -147,5 +188,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseTickerQ();
 
 app.Run();

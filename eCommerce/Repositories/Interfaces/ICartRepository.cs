@@ -8,6 +8,5 @@ namespace ECommerce.Repositories.Interfaces
         Task AddOrUpdateCart(Guid buyerId, Guid productId, int count);
         Task DeleteProductFromCart(Guid buyerId, Guid productId);
         Task<Buyer> GetBuyerById(Guid buyerId);
-        Task SubtractCartItemsFromProductStock(List<CartItem> cartItems);
     }
 }

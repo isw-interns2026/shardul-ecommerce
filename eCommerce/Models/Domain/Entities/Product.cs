@@ -7,20 +7,20 @@ namespace ECommerce.Models.Domain.Entities
     {
         public Guid SellerId { get; set; }
         public Seller Seller { get; set; }
-
         public string? Sku { get; set; }
-
         public string? Name { get; set; }
-
         public decimal? Price { get; set; }
-
         public int? CountInStock { get; set; }
-
+        public int ReservedCount { get; set; } = 0;
         public string? Description { get; set; }
-
         public string? ImageUrl { get; set; }
-
         public bool? IsListed { get; set; }
+
+        /// <summary>
+        /// Available stock = total stock minus currently reserved units.
+        /// This is what buyers should see.
+        /// </summary>
+        public int AvailableStock => (CountInStock ?? 0) - ReservedCount;
     }
 
     public class ProductConfiguration : EntityConfiguration<Product>
@@ -40,9 +40,16 @@ namespace ECommerce.Models.Domain.Entities
             // Field: Name Constraint: Required
             builder.Property(product => product.Name).IsRequired();
 
-            // Field: Price, CountInStock Constraint: Greater than/equal to zero
-            builder.ToTable(t => t.HasCheckConstraint("CK_Product_Price_Positive", "\"Price\" > 0"));
-            builder.ToTable(t => t.HasCheckConstraint("CK_Product_Stock_Positive", "\"CountInStock\" >= 0"));
+            // Ignore the computed property — EF should not try to map it
+            builder.Ignore(p => p.AvailableStock);
+
+            builder.ToTable(t =>
+            {
+                t.HasCheckConstraint("CK_Product_Price_Positive", "\"Price\" > 0");
+                t.HasCheckConstraint("CK_Product_Stock_Positive", "\"CountInStock\" >= 0");
+                t.HasCheckConstraint("CK_Product_Reserved_Non_Negative", "\"ReservedCount\" >= 0");
+                t.HasCheckConstraint("CK_Product_Reserved_Within_Stock", "\"ReservedCount\" <= \"CountInStock\"");
+            });
         }
     }
 }

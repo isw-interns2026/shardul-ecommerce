@@ -23,8 +23,8 @@ export async function clientAction({ request }: Route.ActionArgs) {
   try {
     await sendBuyerRegisterRequest(formData);
     return redirect("/auth/buyer/login"); // Redirect to login after successful registration
-  } catch (error) {
-    return { error: "Registration failed. Please try again." };
+  } catch {
+    alert("Registration failed. Try again.")
   }
 }
 

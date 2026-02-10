@@ -37,7 +37,7 @@ export default function ProductDisplay({ loaderData }: Route.ComponentProps) {
     fetcher.data?.success && quantity === fetcher.data?.addedQuantity;
 
   const handleIncrement = () => {
-    if (quantity < productDto.countInStock) {
+    if (quantity < productDto.availableStock) {
       setQuantity((prev) => prev + 1);
     }
   };
@@ -85,13 +85,13 @@ export default function ProductDisplay({ loaderData }: Route.ComponentProps) {
 
             <div className="space-y-2">
               <p className="text-sm font-medium">
-                {productDto.countInStock > 0 ? (
+                {productDto.availableStock > 0 ? (
                   <span className="text-green-600 flex items-center gap-1">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
-                    {productDto.countInStock} items in stock
+                    {productDto.availableStock} items in stock
                   </span>
                 ) : (
                   <span className="text-red-600">Out of stock</span>
@@ -104,7 +104,7 @@ export default function ProductDisplay({ loaderData }: Route.ComponentProps) {
               )}
             </div>
 
-            {productDto.countInStock > 0 && (
+            {productDto.availableStock > 0 && (
               <div className="space-y-4 pt-4 border-t">
                 <label className="text-sm font-semibold">Quantity</label>
                 <div className="flex items-center gap-4">
@@ -127,7 +127,7 @@ export default function ProductDisplay({ loaderData }: Route.ComponentProps) {
                       className="h-8 w-8"
                       onClick={handleIncrement}
                       disabled={
-                        quantity >= productDto.countInStock || isSubmitting
+                        quantity >= productDto.availableStock || isSubmitting
                       }
                     >
                       <Plus className="h-4 w-4" />

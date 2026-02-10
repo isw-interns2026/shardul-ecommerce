@@ -2,7 +2,7 @@
 import apiClient from "~/axios_instance";
 import type { BuyerCartItemResponseDto } from "~/types/ResponseDto";
 import type { Route } from "./+types/view_cart";
-import { Form, useFetcher } from "react-router";
+import { Form, useFetcher, useFetchers } from "react-router"; // Added useFetchers
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { CreditCard, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
@@ -13,30 +13,50 @@ export async function clientLoader() {
   return { cartItems };
 }
 
-export async function clientAction({
-  request,
-}: Route.ActionArgs) {
+export async function clientAction({ request }: Route.ActionArgs) {
   const formData = await request.formData();
-
   const productId = formData.get("productId") as string;
   const count = Number(formData.get("count"));
 
-  await apiClient.post(
-    `/buyer/cart/${productId}?count=${count}`
-  );
-
-  return null; // triggers loader revalidation
+  await apiClient.post(`/buyer/cart/${productId}?count=${count}`);
+  return null;
 }
 
 export default function CartDisplay({ loaderData }: Route.ComponentProps) {
   const { cartItems } = loaderData;
+  const fetchers = useFetchers();
 
-  const cartTotal = cartItems.reduce(
+  // 1. Identify items being deleted across all active fetchers
+  const deletingIds = new Set(
+    fetchers
+      .filter((f) => f.state !== "idle" && f.formAction?.includes("delete"))
+      .map((f) => f.formAction?.split("/").pop())
+  );
+
+  // 2. Identify quantity updates across all active fetchers
+  const quantityUpdates = new Map(
+    fetchers
+      .filter((f) => f.state !== "idle" && f.formData?.has("count"))
+      .map((f) => [f.formData?.get("productId"), Number(f.formData?.get("count"))])
+  );
+
+  // 3. Create the Optimistic Cart List
+  const optimisticCartItems = cartItems
+    .filter((item) => !deletingIds.has(item.id))
+    .map((item) => {
+      const pendingCount = quantityUpdates.get(item.id);
+      return pendingCount !== undefined
+        ? { ...item, countInCart: pendingCount }
+        : item;
+    });
+
+  // 4. Calculate Total based on optimistic data
+  const cartTotal = optimisticCartItems.reduce(
     (acc, item) => acc + item.price * item.countInCart,
     0
   );
 
-  if (cartItems.length === 0) {
+  if (optimisticCartItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
         <ShoppingBag className="h-12 w-12 mb-4 opacity-20" />
@@ -50,7 +70,7 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
       <h1 className="text-2xl font-bold">Shopping Cart</h1>
       
       <div className="space-y-4">
-        {cartItems.map((item) => (
+        {optimisticCartItems.map((item) => (
           <CartItem key={item.id} item={item} />
         ))}
       </div>
@@ -75,27 +95,8 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
   );
 }
 
-function CartItem({
-  item,
-}: {
-  item: {
-    id: string;
-    name: string;
-    price: number;
-    countInCart: number;
-  };
-}) {
+function CartItem({ item }: { item: BuyerCartItemResponseDto }) {
   const fetcher = useFetcher();
-  const deleteFetcher = useFetcher(); // Separate fetcher for deletion
-
-  const optimisticCount = fetcher.formData
-    ? Number(fetcher.formData.get("count"))
-    : item.countInCart;
-
-  // If the item is being deleted, we can hide it optimistically
-  const isDeleting = deleteFetcher.state !== "idle";
-
-  if (isDeleting) return null;
 
   return (
     <Card>
@@ -108,20 +109,19 @@ function CartItem({
         </div>
 
         <div className="flex items-center gap-6">
-          {/* Quantity controls */}
           <div className="flex items-center gap-2">
             <fetcher.Form method="post">
               <input type="hidden" name="productId" value={item.id} />
               <input
                 type="hidden"
                 name="count"
-                value={Math.max(optimisticCount - 1, 1)}
+                value={Math.max(item.countInCart - 1, 1)}
               />
               <Button
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
-                disabled={optimisticCount <= 1}
+                disabled={item.countInCart <= 1}
                 type="submit"
               >
                 <Minus className="h-3 w-3" />
@@ -129,7 +129,7 @@ function CartItem({
             </fetcher.Form>
 
             <span className="w-8 text-center font-medium">
-              {optimisticCount}
+              {item.countInCart}
             </span>
 
             <fetcher.Form method="post">
@@ -137,7 +137,7 @@ function CartItem({
               <input
                 type="hidden"
                 name="count"
-                value={optimisticCount + 1}
+                value={item.countInCart + 1}
               />
               <Button
                 variant="outline"
@@ -150,21 +150,16 @@ function CartItem({
             </fetcher.Form>
           </div>
 
-          {/* Delete Button */}
-          <deleteFetcher.Form 
-            method="post" 
-            action={`delete/${item.id}`}
-          >
+          <fetcher.Form method="post" action={`delete/${item.id}`}>
             <Button 
               variant="ghost" 
               size="icon" 
               className="text-destructive hover:bg-destructive/10"
               type="submit"
-              title="Remove item"
             >
               <Trash2 className="h-5 w-5" />
             </Button>
-          </deleteFetcher.Form>
+          </fetcher.Form>
         </div>
       </CardContent>
     </Card>

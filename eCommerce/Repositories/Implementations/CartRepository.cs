@@ -78,21 +78,5 @@ namespace ECommerce.Repositories.Implementations
             Buyer b = await dbContext.Buyers.Where(b => b.Id == buyerId).FirstAsync();
             return b;
         }
-
-        public async Task SubtractCartItemsFromProductStock(List<CartItem> cartItems)
-        {
-            foreach (var ci in cartItems)
-            {
-                try
-                {
-                    ci.Product.CountInStock -= ci.Count;
-                    await dbContext.SaveChangesAsync();
-                }
-                catch
-                {
-                    throw new InsufficientStockException(ci.Product);
-                }
-            }
-        }
     }
 }

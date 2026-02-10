@@ -14,9 +14,8 @@ export async function clientAction({ request }: Route.ActionArgs) {
   try {
     await sendBuyerLoginRequest(formData);
     return redirect("/buyer");
-  } catch (error) {
-    // You can return errors here to display them in the UI using useActionData()
-    return { error: "Invalid email or password" };
+  } catch {
+    alert("Invalid email or password");
   }
 }
 

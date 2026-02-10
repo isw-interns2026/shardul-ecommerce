@@ -29,12 +29,8 @@ export default function Home() {
           {/* Left Side: Branding/Hero Text */}
           <div className="space-y-6 text-center lg:text-left">
             <h1 className="text-5xl lg:text-7xl font-black tracking-tighter text-slate-900">
-              Shop the <span className="text-primary">Future</span> of Retail.
+             The <span className="text-primary">Future</span> of Retail.
             </h1>
-            <p className="text-lg text-muted-foreground max-w-lg mx-auto lg:mx-0">
-              Discover curated collections from top sellers worldwide. Fast delivery, 
-              secure payments, and 24/7 support.
-            </p>
           </div>
 
           {/* Right Side: Action Card */}

@@ -10,8 +10,8 @@ export async function clientLoader() {
   const products: BuyerProductResponseDto[] = response.data;
   
   const sortedProducts = [...products].sort((a, b) => {
-    const aStock = a.countInStock > 0 ? 1 : 0;
-    const bStock = b.countInStock > 0 ? 1 : 0;
+    const aStock = a.availableStock > 0 ? 1 : 0;
+    const bStock = b.availableStock > 0 ? 1 : 0;
     return bStock - aStock; // 1 (in stock) comes before 0 (out of stock)
   });
 
@@ -35,7 +35,6 @@ export default function BuyerHomePage({ loaderData }: Route.ComponentProps) {
             className="group outline-none"
           >
             <Card className="h-full overflow-hidden border-2 transition-all duration-300 hover:border-primary/50 hover:shadow-xl">
-              {/* Image Thumbnail - Updated to imageUrl */}
               <div className="aspect-square bg-muted/50 overflow-hidden border-b">
                 {product.imageUrl ? (
                   <img
@@ -64,13 +63,12 @@ export default function BuyerHomePage({ loaderData }: Route.ComponentProps) {
                 )}
 
                 <div className="pt-2 flex items-center justify-between">
-                  {/* Price - Using Rupee Symbol */}
                   <div className="text-xl font-black text-primary">
                     ₹{product.price.toFixed(2)}
                   </div>
 
                   <div className="text-[10px] font-bold uppercase tracking-widest">
-                    {product.countInStock > 0 ? (
+                    {product.availableStock > 0 ? (
                       <span className="text-green-600 bg-green-50 px-2 py-1 rounded">
                         In Stock
                       </span>

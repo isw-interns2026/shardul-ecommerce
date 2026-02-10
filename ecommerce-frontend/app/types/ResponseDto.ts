@@ -8,7 +8,7 @@ export interface BuyerProductResponseDto {
   sku: string;
   name: string;
   price: number;
-  countInStock: number;
+  availableStock: number;
   description: string | null;
   imageUrl: string | null;
 }
@@ -18,20 +18,10 @@ export interface BuyerCartItemResponseDto {
   sku: string;
   name: string;
   price: number;
-  countInStock: number;
+  availableStock: number;
   description: string | null;
   imageUrl: string | null;
   countInCart: number;
-}
-
-export interface BuyerOrderResponseDto {
-  orderId: string;
-  orderValue: number;
-  productCount: number;
-  productId: string;
-  productName: string;
-  productSku: string;
-  deliveryAddress: string;
 }
 
 export interface BuyerOrderResponseDto {
