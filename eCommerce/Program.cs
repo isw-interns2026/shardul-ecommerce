@@ -183,12 +183,12 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
+app.UseTickerQ();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseTickerQ();
 
 app.Run();
