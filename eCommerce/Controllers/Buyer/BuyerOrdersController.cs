@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ECommerce.Models.Domain.Entities;
 using ECommerce.Models.DTO.Buyer;
+using ECommerce.Models.DTO.Seller;
 using ECommerce.Repositories.Interfaces;
 using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -38,14 +39,14 @@ namespace ECommerce.Controllers.Buyer
         }
 
         [HttpGet("{orderId}")]
-        public async Task<IActionResult> GetOrderForBuyer([FromRoute] Guid orderId)
+        public async Task<IActionResult> GetSellerOrderByOrderID([FromRoute] Guid orderId)
         {
             Order? order = (await ordersRepository.GetOrdersAsync(new MandatoryUserIdArgument.Buyer([buyerId]), orderIds: [orderId])).FirstOrDefault();
 
             if (order is null) return NotFound();
 
-            var buyerOrderResponseDto = mapper.Map<BuyerOrderResponseDto>(order);
-            return Ok(buyerOrderResponseDto);
+            var sellerOrderResponseDto = mapper.Map<SellerOrderResponseDto>(order);
+            return Ok(sellerOrderResponseDto);
         }
     }
 }
