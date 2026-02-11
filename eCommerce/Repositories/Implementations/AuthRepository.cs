@@ -3,6 +3,7 @@ using ECommerce.Models.Domain.Exceptions;
 using ECommerce.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -28,6 +29,7 @@ namespace ECommerce.Repositories.Implementations
                 await dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
+                when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Buyers_Email" })
             {
                 Console.WriteLine(ex);
                 throw new DuplicateEmailException();
@@ -42,6 +44,7 @@ namespace ECommerce.Repositories.Implementations
                 await dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
+                when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Sellers_Email" })
             {
                 Console.WriteLine(ex);
                 throw new DuplicateEmailException();
