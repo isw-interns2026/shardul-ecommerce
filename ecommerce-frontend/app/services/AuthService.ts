@@ -6,5 +6,5 @@ export async function sendBuyerLoginRequest(formData: FormData) {
 }
 
 export async function sendBuyerRegisterRequest(formData: FormData) {
-  await apiClient.post("/auth/buyer/register", formDataToObject(formData));
+  await apiClient.post("/auth/buyer/register", formData);
 }
