@@ -2,23 +2,17 @@
 using ECommerce.Models.Domain.Exceptions;
 using ECommerce.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Npgsql;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace ECommerce.Repositories.Implementations
 {
     public class AuthRepository : IAuthRepository
     {
         private readonly ECommerceDbContext dbContext;
-        private readonly IConfiguration configuration;
 
-        public AuthRepository(ECommerceDbContext dbContext, IConfiguration configuration)
+        public AuthRepository(ECommerceDbContext dbContext)
         {
             this.dbContext = dbContext;
-            this.configuration = configuration;
         }
 
         public async Task CreateBuyerAsync(Models.Domain.Entities.Buyer buyer)
@@ -28,10 +22,9 @@ namespace ECommerce.Repositories.Implementations
                 await dbContext.AddAsync(buyer);
                 await dbContext.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
                 when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Buyers_Email" })
             {
-                Console.WriteLine(ex);
                 throw new DuplicateEmailException();
             }
         }
@@ -43,10 +36,9 @@ namespace ECommerce.Repositories.Implementations
                 await dbContext.AddAsync(seller);
                 await dbContext.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
                 when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Sellers_Email" })
             {
-                Console.WriteLine(ex);
                 throw new DuplicateEmailException();
             }
         }
@@ -69,32 +61,6 @@ namespace ECommerce.Repositories.Implementations
                 return seller;
             }
             return null;
-        }
-
-        public string GenerateJWT(string userId, string email, string name, string role)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"]);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(
-                [
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.CreateVersion7().ToString()),
-                    new Claim(ClaimTypes.NameIdentifier, userId),
-                    new Claim(ClaimTypes.Email, email),
-                    new Claim(ClaimTypes.GivenName, name),
-                    new Claim(ClaimTypes.Role, role)
-                ]),
-                IssuedAt = DateTime.UtcNow,
-                Issuer = configuration["JWT:Issuer"],
-                Audience = configuration["JWT:Audience"],
-                Expires = DateTime.UtcNow.AddDays(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
         }
     }
 }

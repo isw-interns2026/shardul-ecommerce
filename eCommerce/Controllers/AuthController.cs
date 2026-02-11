@@ -1,5 +1,6 @@
 ﻿using ECommerce.Models.DTO.Auth.Request;
 using ECommerce.Repositories.Interfaces;
+using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,12 +12,13 @@ namespace ECommerce.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthRepository authRepository;
+        private readonly ITokenService tokenService;
 
-        public AuthController(IAuthRepository authRepository)
+        public AuthController(IAuthRepository authRepository, ITokenService tokenService)
         {
             this.authRepository = authRepository;
+            this.tokenService = tokenService;
         }
-
 
         [HttpPost("buyer/register")]
         public async Task<IActionResult> RegisterBuyer([FromBody] BuyerRegisterRequestDto Dto)
@@ -61,7 +63,7 @@ namespace ECommerce.Controllers
             if (buyer is null)
                 return Unauthorized();
 
-            var accessToken = authRepository.GenerateJWT(userId: buyer.Id.ToString(), email: buyer.Email, name: buyer.Name, role: "Buyer");
+            var accessToken = tokenService.GenerateJWT(userId: buyer.Id.ToString(), email: buyer.Email, name: buyer.Name, role: "Buyer");
 
             return Ok(new { accessToken });
         }
@@ -74,7 +76,7 @@ namespace ECommerce.Controllers
             if (seller is null)
                 return Unauthorized();
 
-            var accessToken = authRepository.GenerateJWT(userId: seller.Id.ToString(), email: seller.Email, name: seller.Name, role: "Seller");
+            var accessToken = tokenService.GenerateJWT(userId: seller.Id.ToString(), email: seller.Email, name: seller.Name, role: "Seller");
 
             return Ok(new { accessToken });
         }
