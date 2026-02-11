@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ECommerce.Data;
 using ECommerce.Models.Domain.Entities;
 using ECommerce.Models.DTO.Seller;
 using ECommerce.Repositories.Interfaces;
@@ -17,12 +18,14 @@ namespace ECommerce.Controllers.Seller
         private readonly Guid sellerId;
         private readonly IProductsRepository productsRepository;
         private readonly IMapper mapper;
+        private readonly IUnitOfWork unitOfWork;
 
-        public ProductsController(ICurrentUser currentUser, IProductsRepository productsRepository, IMapper mapper)
+        public ProductsController(ICurrentUser currentUser, IProductsRepository productsRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             sellerId = currentUser.UserId;
             this.productsRepository = productsRepository;
             this.mapper = mapper;
+            this.unitOfWork = unitOfWork;
         }
 
 
@@ -59,7 +62,7 @@ namespace ECommerce.Controllers.Seller
 
             mapper.Map(updateProductDto, product);
 
-            await productsRepository.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync();
 
             return Ok();
         }

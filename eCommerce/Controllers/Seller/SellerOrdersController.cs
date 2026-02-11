@@ -1,5 +1,6 @@
 ﻿
 using AutoMapper;
+using ECommerce.Data;
 using ECommerce.Models.Domain.Entities;
 using ECommerce.Models.DTO.Seller;
 using ECommerce.Repositories.Interfaces;
@@ -17,12 +18,14 @@ namespace ECommerce.Controllers.Seller
         private readonly Guid sellerId;
         private readonly IOrdersRepository ordersRepository;
         private readonly IMapper mapper;
+        private readonly IUnitOfWork unitOfWork;
 
-        public OrdersController(ICurrentUser currentUser, IOrdersRepository ordersRepository, IMapper mapper)
+        public OrdersController(ICurrentUser currentUser, IOrdersRepository ordersRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             sellerId = currentUser.UserId;
             this.ordersRepository = ordersRepository;
             this.mapper = mapper;
+            this.unitOfWork = unitOfWork;
         }
 
 
@@ -57,9 +60,9 @@ namespace ECommerce.Controllers.Seller
 
             if (order is null) return NotFound();
 
-            // TODO: Transaction rollback if seller cancels order.
-
             mapper.Map(updateOrderDto, order);
+
+            await unitOfWork.SaveChangesAsync();
 
             return Ok();
         }

@@ -45,11 +45,6 @@ namespace ECommerce.Repositories.Implementations
             }
         }
 
-        public async Task SaveChangesAsync()
-        {
-            await dbContext.SaveChangesAsync();
-        }
-
         public async Task<List<Product>> GetAllProductsAsync()
         {
             return await dbContext.Products.ToListAsync();
