@@ -43,6 +43,10 @@ namespace ECommerce.Models.Domain.Entities
             // Ignore the computed property — EF should not try to map it
             builder.Ignore(p => p.AvailableStock);
 
+            //Add concurrency tokens to stock-related fields to prevent lost update problem
+            builder.Property(p => p.CountInStock).IsConcurrencyToken();
+            builder.Property(p => p.ReservedCount).IsConcurrencyToken();
+
             builder.ToTable(t =>
             {
                 t.HasCheckConstraint("CK_Product_Price_Positive", "\"Price\" > 0");
