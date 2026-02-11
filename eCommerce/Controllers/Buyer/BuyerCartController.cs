@@ -68,9 +68,10 @@ namespace ECommerce.Controllers.Buyer
         }
 
         [HttpDelete]
-        public Task<IActionResult> ClearCart()
+        public async Task<IActionResult> ClearCart()
         {
-            throw new NotImplementedException();
+            await cartRepository.ClearCartAsync(buyerId);
+            return NoContent();
         }
 
         [HttpPost]
@@ -88,7 +89,10 @@ namespace ECommerce.Controllers.Buyer
             // 3. Create orders (status = AwaitingPayment)
             await ordersRepository.CreateOrdersForTransaction(cartItems: cartItems, buyer: b, transaction: t);
 
-            // 4. TODO: Create Stripe Checkout Session and return URL
+            // 4. Clear the cart
+            await cartRepository.ClearCartAsync(buyerId);
+
+            // 5. TODO: Create Stripe Checkout Session and return URL
             return Ok(new { transactionId = t.Id });
         }
     }

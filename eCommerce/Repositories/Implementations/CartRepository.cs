@@ -78,5 +78,17 @@ namespace ECommerce.Repositories.Implementations
             Buyer b = await dbContext.Buyers.Where(b => b.Id == buyerId).FirstAsync();
             return b;
         }
+
+        public async Task ClearCartAsync(Guid buyerId)
+        {
+            Guid cartId = await dbContext.Carts
+                .Where(c => c.BuyerId == buyerId)
+                .Select(c => c.Id)
+                .FirstAsync();
+
+            await dbContext.CartItems
+                .Where(ci => ci.CartId == cartId)
+                .ExecuteDeleteAsync();
+        }
     }
 }
