@@ -27,7 +27,7 @@ namespace ECommerce.Controllers.Buyer
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
-            List<Product> products = await productsRepository.GetAllProductsAsync();
+            List<Product> products = await productsRepository.GetAllListedProductsAsync();
 
             var buyerProductResponseDtos = new List<BuyerProductResponseDto>();
 

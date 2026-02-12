@@ -9,7 +9,7 @@ namespace ECommerce.Repositories.Interfaces
             IReadOnlyCollection<Guid>? productIds = null
             );
 
-        Task<List<Product>> GetAllProductsAsync();
+        Task<List<Product>> GetAllListedProductsAsync();
         Task<Product?> GetListedProductsByIdAsync(Guid productId);
         Task CreateProductAsync(Product product);
     }

@@ -46,9 +46,9 @@ namespace ECommerce.Repositories.Implementations
             }
         }
 
-        public async Task<List<Product>> GetAllProductsAsync()
+        public async Task<List<Product>> GetAllListedProductsAsync()
         {
-            return await dbContext.Products.ToListAsync();
+            return await dbContext.Products.Where(p => p.IsListed).ToListAsync();
         }
 
         public async Task<Product?> GetListedProductsByIdAsync(Guid productId)
