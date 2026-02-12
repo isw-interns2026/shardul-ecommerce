@@ -19,10 +19,7 @@ namespace ECommerce.Repositories.Implementations
 
             foreach (var ci in cartItems)
             {
-                if (ci.Product.Price is null)
-                    throw new InvalidOperationException("Product price cannot be null.");
-
-                amount += ci.Product.Price.Value * ci.Count;
+                amount += ci.Product.Price * ci.Count;
             }
 
             Transaction t = new()

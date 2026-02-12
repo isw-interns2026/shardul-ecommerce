@@ -31,10 +31,7 @@ namespace ECommerce.Models.Domain.Entities
 
         public static Order Create(Buyer b, CartItem ci, Transaction t)
         {
-            if (ci.Product.Price is null)
-                throw new InvalidOperationException("Product price must be set.");
-
-            decimal total = ((decimal)ci.Product.Price!) * ci.Count;
+            decimal total = ci.Product.Price * ci.Count;
 
             var order = new Order
             {
