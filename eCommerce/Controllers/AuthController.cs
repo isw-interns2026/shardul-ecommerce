@@ -42,13 +42,12 @@ namespace ECommerce.Controllers
         {
             string hashedPassword = BCrypt.Net.BCrypt.EnhancedHashPassword(Dto.Password);
 
-            var newSeller = new Models.Domain.Entities.Seller
-            {
-                Name = Dto.Name,
-                PasswordHash = hashedPassword,
-                Email = Dto.Email,
-                BankAccountNumber = Dto.BankAccountNumber
-            };
+            var newSeller = Models.Domain.Entities.Seller.Create(
+                name: Dto.Name,
+                email: Dto.Email,
+                passwordHash: hashedPassword,
+                bankAccountNumber: Dto.BankAccountNumber
+            );
 
             await authRepository.CreateSellerAsync(newSeller);
 
