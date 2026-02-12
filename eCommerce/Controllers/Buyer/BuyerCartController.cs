@@ -18,6 +18,7 @@ namespace ECommerce.Controllers.Buyer
         private readonly IOrdersRepository ordersRepository;
         private readonly ITransactionRepository transactionRepository;
         private readonly IStockReservationService stockReservationService;
+        private readonly IStripeService stripeService;
         private readonly IMapper mapper;
 
         public BuyerCartController(
@@ -25,6 +26,7 @@ namespace ECommerce.Controllers.Buyer
             IOrdersRepository ordersRepository,
             ITransactionRepository transactionRepository,
             IStockReservationService stockReservationService,
+            IStripeService stripeService,
             IMapper mapper,
             ICurrentUser currentUser)
         {
@@ -32,6 +34,7 @@ namespace ECommerce.Controllers.Buyer
             this.ordersRepository = ordersRepository;
             this.transactionRepository = transactionRepository;
             this.stockReservationService = stockReservationService;
+            this.stripeService = stripeService;
             this.mapper = mapper;
             buyerId = currentUser.UserId;
         }
@@ -99,8 +102,10 @@ namespace ECommerce.Controllers.Buyer
             // 4. Clear the cart
             await cartRepository.ClearCartAsync(buyerId);
 
-            // 5. TODO: Create Stripe Checkout Session and return URL
-            return Ok(new { transactionId = t.Id });
+            // 5. Create Stripe Checkout Session and return URL
+            string checkoutUrl = await stripeService.CreateCheckoutSessionAsync(t, cartItems);
+
+            return Ok(new { checkoutUrl });
         }
     }
 }
