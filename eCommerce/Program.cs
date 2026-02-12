@@ -44,6 +44,7 @@ builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 builder.Services.AddScoped<IStockReservationService, StockReservationService>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
+builder.Services.AddScoped<IStripeService, StripeService>();
 
 
 var connStringKey = "PgConnString";
