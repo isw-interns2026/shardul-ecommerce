@@ -99,11 +99,11 @@ namespace ECommerce.Controllers.Buyer
             // 3. Create orders (status = AwaitingPayment)
             await ordersRepository.CreateOrdersForTransaction(cartItems: cartItems, buyer: b, transaction: t);
 
-            // 4. Clear the cart
-            await cartRepository.ClearCartAsync(buyerId);
-
-            // 5. Create Stripe Checkout Session and return URL
+            // 4. Create Stripe Checkout Session (if this fails, cart is still intact)
             string checkoutUrl = await stripeService.CreateCheckoutSessionAsync(t, cartItems);
+
+            // 5. Clear cart only after Stripe session is created successfully
+            await cartRepository.ClearCartAsync(buyerId);
 
             return Ok(new { checkoutUrl });
         }
