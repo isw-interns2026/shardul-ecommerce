@@ -24,6 +24,13 @@ export interface BuyerCartItemResponseDto {
   countInCart: number;
 }
 
+export type OrderStatus =
+  | "Delivered"
+  | "WaitingForSellerToAccept"
+  | "InTransit"
+  | "AwaitingPayment"
+  | "Cancelled";
+
 export interface BuyerOrderResponseDto {
   orderId: string;
   orderValue: number;
@@ -32,4 +39,5 @@ export interface BuyerOrderResponseDto {
   productName: string;
   productSku: string;
   deliveryAddress: string;
+  orderStatus: OrderStatus;
 }

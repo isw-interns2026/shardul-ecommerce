@@ -6,6 +6,16 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Package, MapPin, Calendar } from "lucide-react";
 import { Link } from "react-router";
+import type { OrderStatus } from "~/types/ResponseDto";
+
+const statusConfig: Record<OrderStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  AwaitingPayment: { label: "Awaiting Payment", variant: "outline" },
+  WaitingForSellerToAccept: { label: "Confirmed", variant: "default" },
+  Accepted: { label: "Accepted", variant: "default" },
+  InTransit: { label: "In Transit", variant: "secondary" },
+  Delivered: { label: "Delivered", variant: "default" },
+  Cancelled: { label: "Cancelled", variant: "destructive" },
+} as Record<OrderStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }>;
 
 export async function clientLoader() {
   const response = await apiClient.get(`/buyer/orders`);
@@ -85,10 +95,10 @@ export default function OrdersPage({ loaderData }: Route.ComponentProps) {
                           </span>
                         </span>
                         <Badge
-                          variant="secondary"
+                          variant={statusConfig[order.orderStatus]?.variant ?? "secondary"}
                           className="h-5 px-1.5 text-[10px] font-bold uppercase"
                         >
-                          Confirmed
+                          {statusConfig[order.orderStatus]?.label ?? order.orderStatus}
                         </Badge>
                       </div>
                     </div>
