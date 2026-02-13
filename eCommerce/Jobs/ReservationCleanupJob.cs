@@ -35,19 +35,13 @@ namespace ECommerce.Jobs
         {
             var cutoff = DateTime.UtcNow - ReservationTimeout;
 
-            var processingTransactionIds = await dbContext.Set<Transaction>()
+            var processingTransactions = await dbContext.Set<Transaction>()
                 .Where(t => t.Status == TransactionStatus.Processing)
-                .Select(t => t.Id)
                 .ToListAsync(cancellationToken);
 
-            var staleTransactionIds = processingTransactionIds
-                .Where(id =>
-                {
-                    var hex = id.ToString("N")[..12];
-                    var ms = Convert.ToInt64(hex, 16);
-                    var createdAt = DateTimeOffset.FromUnixTimeMilliseconds(ms).UtcDateTime;
-                    return createdAt < cutoff;
-                })
+            var staleTransactionIds = processingTransactions
+                .Where(t => t.CreatedAt < cutoff)
+                .Select(t => t.Id)
                 .ToList();
 
             if (staleTransactionIds.Count == 0)
