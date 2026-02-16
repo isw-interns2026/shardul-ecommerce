@@ -7,7 +7,6 @@ namespace ECommerce.Repositories.Interfaces
         Task<List<CartItem>> GetBuyerCartItemsAsync(Guid buyerId);
         Task AddOrUpdateCartAsync(Guid buyerId, Guid productId, int count);
         Task DeleteProductFromCartAsync(Guid buyerId, Guid productId);
-        Task<Buyer> GetBuyerByIdAsync(Guid buyerId);
         Task ClearCartAsync(Guid buyerId);
     }
 }

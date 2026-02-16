@@ -15,6 +15,7 @@ namespace ECommerce.Controllers.Buyer
     public class BuyerCartController : ControllerBase
     {
         private readonly Guid buyerId;
+        private readonly IAuthRepository authRepository;
         private readonly ICartRepository cartRepository;
         private readonly IOrdersRepository ordersRepository;
         private readonly ITransactionRepository transactionRepository;
@@ -23,6 +24,7 @@ namespace ECommerce.Controllers.Buyer
         private readonly IUnitOfWork unitOfWork;
 
         public BuyerCartController(
+            IAuthRepository authRepository,
             ICartRepository cartRepository,
             IOrdersRepository ordersRepository,
             ITransactionRepository transactionRepository,
@@ -31,6 +33,7 @@ namespace ECommerce.Controllers.Buyer
             ICurrentUser currentUser,
             IUnitOfWork unitOfWork)
         {
+            this.authRepository = authRepository;
             this.cartRepository = cartRepository;
             this.ordersRepository = ordersRepository;
             this.transactionRepository = transactionRepository;
@@ -91,7 +94,7 @@ namespace ECommerce.Controllers.Buyer
             if (cartItems.Count == 0)
                 return BadRequest("Cart is empty.");
 
-            Models.Domain.Entities.Buyer b = await cartRepository.GetBuyerByIdAsync(buyerId);
+            Models.Domain.Entities.Buyer b = await authRepository.GetBuyerByIdAsync(buyerId);
 
             await stockReservationService.ReserveStockForCartItems(cartItems);
 

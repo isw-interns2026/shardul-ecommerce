@@ -8,5 +8,6 @@ namespace ECommerce.Repositories.Interfaces
         void CreateSeller(Seller seller);
         Task<Buyer?> GetBuyerIfValidCredentialsAsync(string email, string password);
         Task<Seller?> GetSellerIfValidCredentialsAsync(string email, string password);
+        Task<Buyer> GetBuyerByIdAsync(Guid buyerId);
     }
 }

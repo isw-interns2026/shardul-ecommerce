@@ -42,5 +42,10 @@ namespace ECommerce.Repositories.Implementations
             }
             return null;
         }
+
+        public async Task<Models.Domain.Entities.Buyer> GetBuyerByIdAsync(Guid buyerId)
+        {
+            return await dbContext.Buyers.Where(b => b.Id == buyerId).FirstAsync();
+        }
     }
 }
