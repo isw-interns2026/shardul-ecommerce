@@ -1,6 +1,5 @@
 ﻿using ECommerce.Data;
 using ECommerce.Models.Domain.Entities;
-using ECommerce.Models.Domain.Exceptions;
 using ECommerce.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,13 +28,15 @@ namespace ECommerce.Repositories.Implementations
             return cartItems;
         }
 
-        public async Task AddOrUpdateCart(Guid buyerId, Guid productId, int count)
+        public async Task AddOrUpdateCartAsync(Guid buyerId, Guid productId, int count)
         {
             Guid cartId = await dbContext.Carts
-            .Where(c => c.BuyerId == buyerId)
-            .Select(c => c.Id).FirstAsync();
+                .Where(c => c.BuyerId == buyerId)
+                .Select(c => c.Id).FirstAsync();
 
-            var cartItem = await dbContext.CartItems.Where(ci => ci.CartId == cartId && ci.ProductId == productId).FirstOrDefaultAsync();
+            var cartItem = await dbContext.CartItems
+                .Where(ci => ci.CartId == cartId && ci.ProductId == productId)
+                .FirstOrDefaultAsync();
 
             if (cartItem != null)
             {
@@ -44,38 +45,29 @@ namespace ECommerce.Repositories.Implementations
             else
             {
                 cartItem = new CartItem { CartId = cartId, ProductId = productId, Count = count };
-                await dbContext.AddAsync(cartItem);
-            }
-
-            try
-            {
-                await dbContext.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                throw new InvalidCartItemException();
+                dbContext.Add(cartItem);
             }
         }
 
-        public async Task DeleteProductFromCart(Guid buyerId, Guid productId)
+        public async Task DeleteProductFromCartAsync(Guid buyerId, Guid productId)
         {
             Guid cartId = await dbContext.Carts
                         .Where(c => c.BuyerId == buyerId)
                         .Select(c => c.Id).FirstAsync();
 
-            var cartItem = await dbContext.CartItems.Where(ci => ci.CartId == cartId && ci.ProductId == productId).FirstOrDefaultAsync();
+            var cartItem = await dbContext.CartItems
+                .Where(ci => ci.CartId == cartId && ci.ProductId == productId)
+                .FirstOrDefaultAsync();
 
             if (cartItem != null)
             {
                 dbContext.CartItems.Remove(cartItem);
-                await dbContext.SaveChangesAsync();
             }
         }
 
-        public async Task<Buyer> GetBuyerById(Guid buyerId)
+        public async Task<Buyer> GetBuyerByIdAsync(Guid buyerId)
         {
-            Buyer b = await dbContext.Buyers.Where(b => b.Id == buyerId).FirstAsync();
-            return b;
+            return await dbContext.Buyers.Where(b => b.Id == buyerId).FirstAsync();
         }
 
         public async Task ClearCartAsync(Guid buyerId)

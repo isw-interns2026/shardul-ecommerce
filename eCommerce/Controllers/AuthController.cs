@@ -1,4 +1,5 @@
-﻿using ECommerce.Models.DTO.Auth.Request;
+﻿using ECommerce.Data;
+using ECommerce.Models.DTO.Auth.Request;
 using ECommerce.Repositories.Interfaces;
 using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,11 +14,13 @@ namespace ECommerce.Controllers
     {
         private readonly IAuthRepository authRepository;
         private readonly ITokenService tokenService;
+        private readonly IUnitOfWork unitOfWork;
 
-        public AuthController(IAuthRepository authRepository, ITokenService tokenService)
+        public AuthController(IAuthRepository authRepository, ITokenService tokenService, IUnitOfWork unitOfWork)
         {
             this.authRepository = authRepository;
             this.tokenService = tokenService;
+            this.unitOfWork = unitOfWork;
         }
 
         [HttpPost("buyer/register")]
@@ -32,7 +35,8 @@ namespace ECommerce.Controllers
                 address: Dto.Address
                 );
 
-            await authRepository.CreateBuyerAsync(newBuyer);
+            authRepository.CreateBuyer(newBuyer);
+            await unitOfWork.SaveChangesAsync();
 
             return Ok("Buyer created.");
         }
@@ -49,7 +53,8 @@ namespace ECommerce.Controllers
                 bankAccountNumber: Dto.BankAccountNumber
             );
 
-            await authRepository.CreateSellerAsync(newSeller);
+            authRepository.CreateSeller(newSeller);
+            await unitOfWork.SaveChangesAsync();
 
             return Ok("Seller created.");
         }

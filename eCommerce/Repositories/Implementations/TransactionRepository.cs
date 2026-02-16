@@ -13,7 +13,7 @@ namespace ECommerce.Repositories.Implementations
             this.dbContext = dbContext;
         }
 
-        public async Task<Transaction> CreateTransactionForCartItems(List<CartItem> cartItems)
+        public Transaction CreateTransactionForCartItems(List<CartItem> cartItems)
         {
             decimal amount = 0;
 
@@ -28,8 +28,7 @@ namespace ECommerce.Repositories.Implementations
                 Status = TransactionStatus.Processing
             };
 
-            await dbContext.AddAsync(t);
-            await dbContext.SaveChangesAsync();
+            dbContext.Add(t);
 
             return t;
         }

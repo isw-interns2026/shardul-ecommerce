@@ -1,8 +1,6 @@
 ﻿using ECommerce.Data;
-using ECommerce.Models.Domain.Exceptions;
 using ECommerce.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace ECommerce.Repositories.Implementations
 {
@@ -15,32 +13,14 @@ namespace ECommerce.Repositories.Implementations
             this.dbContext = dbContext;
         }
 
-        public async Task CreateBuyerAsync(Models.Domain.Entities.Buyer buyer)
+        public void CreateBuyer(Models.Domain.Entities.Buyer buyer)
         {
-            try
-            {
-                await dbContext.AddAsync(buyer);
-                await dbContext.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-                when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Buyers_Email" })
-            {
-                throw new DuplicateEmailException();
-            }
+            dbContext.Add(buyer);
         }
 
-        public async Task CreateSellerAsync(Models.Domain.Entities.Seller seller)
+        public void CreateSeller(Models.Domain.Entities.Seller seller)
         {
-            try
-            {
-                await dbContext.AddAsync(seller);
-                await dbContext.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-                when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Sellers_Email" })
-            {
-                throw new DuplicateEmailException();
-            }
+            dbContext.Add(seller);
         }
 
         public async Task<Models.Domain.Entities.Buyer?> GetBuyerIfValidCredentialsAsync(string email, string password)

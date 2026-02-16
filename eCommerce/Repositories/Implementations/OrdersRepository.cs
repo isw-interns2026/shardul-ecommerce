@@ -43,15 +43,13 @@ namespace ECommerce.Repositories.Implementations
             return await query.Include(o => o.Product).ToListAsync();
         }
 
-        public async Task CreateOrdersForTransaction(List<CartItem> cartItems, Buyer buyer, Transaction transaction)
+        public void CreateOrdersForTransaction(List<CartItem> cartItems, Buyer buyer, Transaction transaction)
         {
             foreach (var ci in cartItems)
             {
                 Order o = Order.Create(buyer, ci, transaction);
-                await dbContext.AddAsync(o);
+                dbContext.Add(o);
             }
-
-            await dbContext.SaveChangesAsync();
         }
     }
 }

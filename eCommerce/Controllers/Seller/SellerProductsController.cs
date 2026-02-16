@@ -6,7 +6,6 @@ using ECommerce.Repositories.Interfaces;
 using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Controllers.Seller
 {
@@ -73,7 +72,8 @@ namespace ECommerce.Controllers.Seller
             Product p = mapper.Map<Product>(addProductDto);
             p.SellerId = sellerId;
 
-            await productsRepository.CreateProductAsync(p);
+            productsRepository.CreateProduct(p);
+            await unitOfWork.SaveChangesAsync();
 
             return Created();
         }

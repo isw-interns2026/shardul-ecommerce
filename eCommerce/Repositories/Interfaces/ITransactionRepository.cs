@@ -4,6 +4,6 @@ namespace ECommerce.Repositories.Interfaces
 {
     public interface ITransactionRepository
     {
-        Task<Transaction> CreateTransactionForCartItems(List<CartItem> cartItems);
+        Transaction CreateTransactionForCartItems(List<CartItem> cartItems);
     }
 }

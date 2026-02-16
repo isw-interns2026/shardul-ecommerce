@@ -19,7 +19,7 @@ namespace ECommerce.Repositories.Interfaces
             IReadOnlyCollection<Guid>? productIds = null
             );
 
-        Task CreateOrdersForTransaction(List<CartItem> cartItems, Buyer buyer, Transaction transaction);
+        void CreateOrdersForTransaction(List<CartItem> cartItems, Buyer buyer, Transaction transaction);
 
     }
 }

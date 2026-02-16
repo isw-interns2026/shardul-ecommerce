@@ -1,5 +1,4 @@
-﻿using ECommerce.Data;
-using ECommerce.Models.Domain.Entities;
+﻿using ECommerce.Models.Domain.Entities;
 using ECommerce.Services.Interfaces;
 using Stripe;
 using Stripe.Checkout;
@@ -9,12 +8,10 @@ namespace ECommerce.Services.Implementations
     public class StripeService : IStripeService
     {
         private readonly StripeClient stripeClient;
-        private readonly ECommerceDbContext dbContext;
         private readonly IConfiguration configuration;
 
-        public StripeService(ECommerceDbContext dbContext, IConfiguration configuration)
+        public StripeService(IConfiguration configuration)
         {
-            this.dbContext = dbContext;
             this.configuration = configuration;
             stripeClient = new StripeClient(configuration["Stripe:SecretKey"]);
         }
@@ -55,9 +52,8 @@ namespace ECommerce.Services.Implementations
 
             var session = await stripeClient.V1.Checkout.Sessions.CreateAsync(sessionOptions);
 
-            // Store the Stripe Session ID on our transaction
+            // Store the Stripe Session ID on our transaction — caller flushes
             transaction.StripeSessionId = session.Id;
-            await dbContext.SaveChangesAsync();
 
             return session.Url;
         }
