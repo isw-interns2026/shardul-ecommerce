@@ -25,22 +25,36 @@ namespace ECommerce.Mappings
 
         // ── Order ────────────────────────────────────────────────
 
+        public static BuyerOrderResponseDto ToBuyerOrderDto(this Order order)
+        {
+            ArgumentNullException.ThrowIfNull(order.Product,
+                "Order.Product must be included before mapping. Use .Include(o => o.Product).");
+            return MapToBuyerOrderDto(order);
+        }
+
+        public static SellerOrderResponseDto ToSellerOrderDto(this Order order)
+        {
+            ArgumentNullException.ThrowIfNull(order.Product,
+                "Order.Product must be included before mapping. Use .Include(o => o.Product).");
+            return MapToSellerOrderDto(order);
+        }
+
         [MapProperty(nameof(Order.Id), nameof(BuyerOrderResponseDto.OrderId))]
         [MapProperty(nameof(Order.Total), nameof(BuyerOrderResponseDto.OrderValue))]
         [MapProperty(nameof(Order.Count), nameof(BuyerOrderResponseDto.ProductCount))]
         [MapProperty(nameof(Order.Address), nameof(BuyerOrderResponseDto.DeliveryAddress))]
         [MapProperty(nameof(Order.Status), nameof(BuyerOrderResponseDto.OrderStatus))]
-        [MapProperty("Product.Name", nameof(BuyerOrderResponseDto.ProductName))]
-        [MapProperty("Product.Sku", nameof(BuyerOrderResponseDto.ProductSku))]
-        public static partial BuyerOrderResponseDto ToBuyerOrderDto(this Order order);
+        [MapProperty(new[] { nameof(Order.Product), nameof(Product.Name) }, new[] { nameof(BuyerOrderResponseDto.ProductName) })]
+        [MapProperty(new[] { nameof(Order.Product), nameof(Product.Sku) }, new[] { nameof(BuyerOrderResponseDto.ProductSku) })]
+        private static partial BuyerOrderResponseDto MapToBuyerOrderDto(Order order);
 
         [MapProperty(nameof(Order.Id), nameof(SellerOrderResponseDto.OrderId))]
         [MapProperty(nameof(Order.Total), nameof(SellerOrderResponseDto.OrderValue))]
         [MapProperty(nameof(Order.Count), nameof(SellerOrderResponseDto.ProductCount))]
         [MapProperty(nameof(Order.Address), nameof(SellerOrderResponseDto.DeliveryAddress))]
-        [MapProperty("Product.Name", nameof(SellerOrderResponseDto.ProductName))]
-        [MapProperty("Product.Sku", nameof(SellerOrderResponseDto.ProductSku))]
-        public static partial SellerOrderResponseDto ToSellerOrderDto(this Order order);
+        [MapProperty(new[] { nameof(Order.Product), nameof(Product.Name) }, new[] { nameof(SellerOrderResponseDto.ProductName) })]
+        [MapProperty(new[] { nameof(Order.Product), nameof(Product.Sku) }, new[] { nameof(SellerOrderResponseDto.ProductSku) })]
+        private static partial SellerOrderResponseDto MapToSellerOrderDto(Order order);
     }
 
     [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target, AllowNullPropertyAssignment = false)]
