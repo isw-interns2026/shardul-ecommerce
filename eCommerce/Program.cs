@@ -61,6 +61,8 @@ var connectionString =
 builder.Services.AddDbContext<ECommerceDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ECommerceDbContext>());
+
 // --- TickerQ with its own built-in DbContext ---
 builder.Services.AddTickerQ(options =>
 {
