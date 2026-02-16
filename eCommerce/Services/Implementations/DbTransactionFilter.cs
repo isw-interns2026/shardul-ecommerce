@@ -1,5 +1,7 @@
 ﻿using ECommerce.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace ECommerce.Services.Implementations
 {
@@ -24,15 +26,16 @@ namespace ECommerce.Services.Implementations
             {
                 ActionExecutedContext executedContext = await next();
 
-                // Commit only if no exceptions are thrown and successful HTTP response
-                if (executedContext.Exception == null && context.HttpContext.Response.StatusCode is >= 200 and < 300)
-                {
-                    await tx.CommitAsync();
-                }
-                else
-                {
+                // Commit only if no exception was thrown and the result is not an error status.
+                // Note: at this stage, IActionResult hasn't been executed yet, so Response.StatusCode
+                // is unreliable. We check the result type instead.
+                bool isError = executedContext.Exception != null
+                    || executedContext.Result is IStatusCodeActionResult { StatusCode: >= 400 };
+
+                if (isError)
                     await tx.RollbackAsync();
-                }
+                else
+                    await tx.CommitAsync();
             }
             catch
             {
