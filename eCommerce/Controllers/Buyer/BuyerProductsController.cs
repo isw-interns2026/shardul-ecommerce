@@ -1,8 +1,6 @@
 ﻿using ECommerce.Mappings;
 using ECommerce.Models.Domain.Entities;
-using ECommerce.Models.DTO.Buyer;
 using ECommerce.Repositories.Interfaces;
-using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,12 +12,10 @@ namespace ECommerce.Controllers.Buyer
     public class BuyerProductsController : ControllerBase
     {
         private readonly IProductsRepository productsRepository;
-        private readonly Guid buyerId;
 
-        public BuyerProductsController(IProductsRepository productsRepository, ICurrentUser currentUser)
+        public BuyerProductsController(IProductsRepository productsRepository)
         {
             this.productsRepository = productsRepository;
-            buyerId = currentUser.UserId;
         }
 
         [HttpGet]
