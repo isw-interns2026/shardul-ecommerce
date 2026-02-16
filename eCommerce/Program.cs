@@ -18,7 +18,7 @@ using TickerQ.EntityFrameworkCore.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Fail-fast config validation ──────────────────────────────────
-var requiredKeys = new[] { "JWT:SecretKey", "JWT:Issuer", "JWT:Audience", "Stripe:SecretKey", "Stripe:WebhookSecret" };
+var requiredKeys = new[] { "JWT:SecretKey", "JWT:Issuer", "JWT:Audience", "Stripe:SecretKey", "Stripe:WebhookSecret", "Stripe:SuccessUrl", "Stripe:CancelUrl" };
 var missing = requiredKeys.Where(k => string.IsNullOrWhiteSpace(builder.Configuration[k])).ToList();
 if (missing.Count > 0)
     throw new InvalidOperationException(

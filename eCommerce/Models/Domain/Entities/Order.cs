@@ -6,7 +6,7 @@ namespace ECommerce.Models.Domain.Entities
 
     public enum OrderStatus
     {
-        Delivered, WaitingForSellerToAccept, InTransit, AwaitingPayment, Cancelled
+        Delivered, InTransit, AwaitingPayment, Cancelled
     }
     public class Order : Entity
     {

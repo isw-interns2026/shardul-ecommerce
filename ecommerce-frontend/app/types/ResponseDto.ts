@@ -26,7 +26,6 @@ export interface BuyerCartItemResponseDto {
 
 export type OrderStatus =
   | "Delivered"
-  | "WaitingForSellerToAccept"
   | "InTransit"
   | "AwaitingPayment"
   | "Cancelled";
