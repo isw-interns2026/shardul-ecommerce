@@ -2,7 +2,8 @@
   <Project Path="ECommerce.Tests/ECommerce.Tests.csproj" />
   <Project Path="eCommerce/ECommerce.csproj" />
   <Folder Name="/docs/">
-    <File Path="docs/C4_ARCHITECTURE.md" />
     <File Path="docs/BUG_TRACKER.md" />
+    <File Path="docs/unit-test-plan.md" />
+    <File Path="docs/C4_ARCHITECTURE.md" />
   </Folder>
 </Solution>
