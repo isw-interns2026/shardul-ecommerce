@@ -52,6 +52,7 @@ builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 builder.Services.AddScoped<IStockReservationService, StockReservationService>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
+builder.Services.AddSingleton(new Stripe.StripeClient(builder.Configuration["Stripe:SecretKey"]));
 builder.Services.AddScoped<IStripeService, StripeService>();
 
 

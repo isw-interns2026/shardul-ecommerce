@@ -40,6 +40,17 @@
 
 **Decision:** Removed the `ECommerceDbContext` dependency from `StripeService`. It now sets `transaction.StripeSessionId` on the tracked entity and returns. The controller flushes the change.
 
+### 5. Input Validation — FluentValidation with Global Action Filter
+
+**Problem:** No input validation on any request DTO. A user could send a 10MB string as their name, an invalid email, or a negative price. The deprecated `FluentValidation.AspNetCore` package was initially considered but is no longer maintained.
+
+**Decision:** Using `FluentValidation` 12.x + `FluentValidation.DependencyInjectionExtensions` with a custom `FluentValidationFilter` registered as a global `IAsyncActionFilter`. The filter resolves `IValidator<T>` from DI for each action argument and short-circuits with 400 `ValidationProblemDetails` on failure. Controllers have zero validation boilerplate — same pattern as `DbTransactionFilter`. Validators are auto-discovered via `AddValidatorsFromAssemblyContaining<Program>()`.
+
+**Changes:**
+- 7 validators in `Validators/` directory covering all request DTOs
+- `FluentValidationFilter` in `Services/Implementations/` as global action filter
+- Controllers remain clean — validation is a cross-cutting concern handled in the pipeline
+
 ---
 
 ## Bugs Found — Status
@@ -74,10 +85,10 @@
 **Description:** Empty controller with `DbContext` injection, wrong route convention (`api/[controller]` vs `buyer/payments`), shows up in Swagger.
 **Fix:** Delete the file.
 
-### Bug 7: `ProductsRepository` interface vs implementation mismatch ⬜ TODO
+### Bug 7: `ProductsRepository` interface vs implementation mismatch ✅ FIXED
 **Severity:** Medium
-**Description:** Interface declares `sellerIds` as non-nullable `IReadOnlyCollection<Guid>`. Implementation declares it as nullable with default null. If called with null, returns all products across all sellers — authorization bypass.
-**Fix:** Make implementation match interface: non-nullable `sellerIds`, always filter.
+**Description:** Interface declares `sellerIds` as non-nullable `IReadOnlyCollection<Guid>`. Implementation originally declared it as nullable with default null. If called with null, would return all products across all sellers — authorization bypass.
+**Fix:** Resolved during the Unit of Work refactor — implementation now matches the interface with non-nullable `sellerIds`.
 
 ### Bug 8: Multiple `SaveChangesAsync` calls within `DbTransactionFilter` scope ✅ FIXED
 **Severity:** Medium
@@ -99,10 +110,10 @@
 **Description:** Wide-open CORS policy. Fine for dev, not for production.
 **Fix:** Restrict to known frontend origins in production.
 
-### Bug 12: No input validation on registration DTOs ✅ FIXED
+### Bug 12: No input validation on request DTOs ✅ FIXED
 **Severity:** High
 **Description:** No length limits, email format validation, or password strength requirements. A user could register with a 10MB string as their name.
-**Fix:** Added FluentValidation with auto-validation. Validators created for all request DTOs: `BuyerRegisterRequestValidator`, `SellerRegisterRequestValidator`, `LoginRequestValidator`, `AddProductValidator`, `UpdateProductValidator`, `SetStockValidator`, `UpdateOrderValidator`. Validation runs automatically in the MVC pipeline before the controller action executes — invalid requests return 400 with structured error details.
+**Fix:** Added FluentValidation 12.x with a custom `FluentValidationFilter` (global `IAsyncActionFilter`). Validators created for all request DTOs. The filter resolves `IValidator<T>` from DI for each action argument and short-circuits with 400 `ValidationProblemDetails` on failure. Controllers stay clean with zero validation code.
 
 ### Bug 13: `BankAccountNumber` stored in plain text ⬜ TODO
 **Severity:** Medium
@@ -114,10 +125,10 @@
 **Description:** Webhook is wrapped in the global `DbTransactionFilter`. The reservation service has its own retry loop. Two layers of error handling that can interact unpredictably.
 **Fix:** Consider excluding the webhook controller from the filter, or accept the current behavior with documentation.
 
-### Bug 15: `StripeService` creates new `StripeClient` per request ⬜ TODO
+### Bug 15: `StripeService` creates new `StripeClient` per request ✅ FIXED
 **Severity:** Medium
 **Description:** `StripeClient` created in constructor of a scoped service. New HTTP client per request can cause socket exhaustion under load.
-**Fix:** Register `StripeClient` as singleton or use `IHttpClientFactory`.
+**Fix:** `StripeClient` registered as singleton in DI (`builder.Services.AddSingleton(new Stripe.StripeClient(...))`). `StripeService` now receives it via constructor injection instead of creating it internally.
 
 ### Bug 16: AutoMapper `ForAllMembers` null condition on `UpdateProductDto` ⬜ TODO
 **Severity:** Low

@@ -10,10 +10,10 @@ namespace ECommerce.Services.Implementations
         private readonly StripeClient stripeClient;
         private readonly IConfiguration configuration;
 
-        public StripeService(IConfiguration configuration)
+        public StripeService(StripeClient stripeClient, IConfiguration configuration)
         {
+            this.stripeClient = stripeClient;
             this.configuration = configuration;
-            stripeClient = new StripeClient(configuration["Stripe:SecretKey"]);
         }
 
         public async Task<string> CreateCheckoutSessionAsync(Transaction transaction, List<CartItem> cartItems)
