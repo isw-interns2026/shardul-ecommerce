@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿using ECommerce.Mappings;
 using ECommerce.Models.Domain.Entities;
 using ECommerce.Models.DTO.Buyer;
 using ECommerce.Repositories.Interfaces;
@@ -14,13 +14,11 @@ namespace ECommerce.Controllers.Buyer
     public class BuyerProductsController : ControllerBase
     {
         private readonly IProductsRepository productsRepository;
-        private readonly IMapper mapper;
         private readonly Guid buyerId;
 
-        public BuyerProductsController(IProductsRepository productsRepository, IMapper mapper, ICurrentUser currentUser)
+        public BuyerProductsController(IProductsRepository productsRepository, ICurrentUser currentUser)
         {
             this.productsRepository = productsRepository;
-            this.mapper = mapper;
             buyerId = currentUser.UserId;
         }
 
@@ -28,13 +26,7 @@ namespace ECommerce.Controllers.Buyer
         public async Task<IActionResult> GetAllProducts()
         {
             List<Product> products = await productsRepository.GetAllListedProductsAsync();
-
-            var buyerProductResponseDtos = new List<BuyerProductResponseDto>();
-
-            foreach (Product p in products)
-                buyerProductResponseDtos.Add(mapper.Map<BuyerProductResponseDto>(p));
-
-            return Ok(buyerProductResponseDtos);
+            return Ok(products.Select(p => p.ToBuyerProductDto()).ToList());
         }
 
         [HttpGet("{productId}")]
@@ -44,8 +36,7 @@ namespace ECommerce.Controllers.Buyer
 
             if (product is null) return NotFound();
 
-            var buyerProductResponseDto = mapper.Map<BuyerProductResponseDto>(product);
-            return Ok(buyerProductResponseDto);
+            return Ok(product.ToBuyerProductDto());
         }
     }
 }

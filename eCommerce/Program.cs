@@ -1,5 +1,4 @@
 using ECommerce.Data;
-using ECommerce.Mappings;
 using ECommerce.Repositories.Implementations;
 using ECommerce.Repositories.Interfaces;
 using ECommerce.Services.Implementations;
@@ -108,8 +107,6 @@ builder.Services.AddTickerQ(options =>
     }
 });
 
-
-builder.Services.AddAutoMapper(cfg => { }, typeof(OrderMappingProfile), typeof(ProductMappingProfile), typeof(CartMappingProfile));
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -1,5 +1,5 @@
-﻿using AutoMapper;
-using ECommerce.Data;
+﻿using ECommerce.Data;
+using ECommerce.Mappings;
 using ECommerce.Models.Domain.Entities;
 using ECommerce.Models.DTO.Buyer;
 using ECommerce.Repositories.Interfaces;
@@ -20,7 +20,6 @@ namespace ECommerce.Controllers.Buyer
         private readonly ITransactionRepository transactionRepository;
         private readonly IStockReservationService stockReservationService;
         private readonly IStripeService stripeService;
-        private readonly IMapper mapper;
         private readonly IUnitOfWork unitOfWork;
 
         public BuyerCartController(
@@ -29,7 +28,6 @@ namespace ECommerce.Controllers.Buyer
             ITransactionRepository transactionRepository,
             IStockReservationService stockReservationService,
             IStripeService stripeService,
-            IMapper mapper,
             ICurrentUser currentUser,
             IUnitOfWork unitOfWork)
         {
@@ -38,7 +36,6 @@ namespace ECommerce.Controllers.Buyer
             this.transactionRepository = transactionRepository;
             this.stockReservationService = stockReservationService;
             this.stripeService = stripeService;
-            this.mapper = mapper;
             this.unitOfWork = unitOfWork;
             buyerId = currentUser.UserId;
         }
@@ -52,9 +49,9 @@ namespace ECommerce.Controllers.Buyer
 
             foreach (var cartItem in cartItems)
             {
-                var cartItemResponseDto = mapper.Map<BuyerCartItemResponseDto>(cartItem.Product);
-                cartItemResponseDto.CountInCart = cartItem.Count;
-                buyerCartItemResponseDtos.Add(cartItemResponseDto);
+                var dto = cartItem.Product.ToBuyerCartItemDto();
+                dto.CountInCart = cartItem.Count;
+                buyerCartItemResponseDtos.Add(dto);
             }
 
             return Ok(buyerCartItemResponseDtos);
@@ -96,23 +93,17 @@ namespace ECommerce.Controllers.Buyer
 
             Models.Domain.Entities.Buyer b = await cartRepository.GetBuyerByIdAsync(buyerId);
 
-            // 1. Reserve stock — flushes internally (concurrency tokens require it)
             await stockReservationService.ReserveStockForCartItems(cartItems);
 
-            // 2. Stage transaction + orders on the change tracker (no flush)
             Transaction t = transactionRepository.CreateTransactionForCartItems(cartItems);
             ordersRepository.CreateOrdersForTransaction(cartItems: cartItems, buyer: b, transaction: t);
 
-            // 3. Flush transaction + orders together
             await unitOfWork.SaveChangesAsync();
 
-            // 4. Create Stripe Checkout Session — sets StripeSessionId on the tracked transaction
             string checkoutUrl = await stripeService.CreateCheckoutSessionAsync(t, cartItems);
 
-            // 5. Flush the StripeSessionId update
             await unitOfWork.SaveChangesAsync();
 
-            // 6. Clear cart
             await cartRepository.ClearCartAsync(buyerId);
 
             return Ok(new { checkoutUrl });

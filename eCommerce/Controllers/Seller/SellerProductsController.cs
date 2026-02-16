@@ -1,5 +1,5 @@
-﻿using AutoMapper;
-using ECommerce.Data;
+﻿using ECommerce.Data;
+using ECommerce.Mappings;
 using ECommerce.Models.Domain.Entities;
 using ECommerce.Models.DTO.Seller;
 using ECommerce.Repositories.Interfaces;
@@ -16,29 +16,20 @@ namespace ECommerce.Controllers.Seller
     {
         private readonly Guid sellerId;
         private readonly IProductsRepository productsRepository;
-        private readonly IMapper mapper;
         private readonly IUnitOfWork unitOfWork;
 
-        public ProductsController(ICurrentUser currentUser, IProductsRepository productsRepository, IMapper mapper, IUnitOfWork unitOfWork)
+        public ProductsController(ICurrentUser currentUser, IProductsRepository productsRepository, IUnitOfWork unitOfWork)
         {
             sellerId = currentUser.UserId;
             this.productsRepository = productsRepository;
-            this.mapper = mapper;
             this.unitOfWork = unitOfWork;
         }
-
 
         [HttpGet]
         public async Task<IActionResult> GetAllSellerProducts()
         {
             List<Product> products = await productsRepository.GetProductsBySellerIdAsync(sellerIds: [sellerId]);
-
-            var sellerProductResponseDtos = new List<SellerProductResponseDto>();
-
-            foreach (Product p in products)
-                sellerProductResponseDtos.Add(mapper.Map<SellerProductResponseDto>(p));
-
-            return Ok(sellerProductResponseDtos);
+            return Ok(products.Select(p => p.ToSellerProductDto()).ToList());
         }
 
         [HttpGet("{productId}")]
@@ -48,8 +39,7 @@ namespace ECommerce.Controllers.Seller
 
             if (product is null) return NotFound();
 
-            var sellerProductResponseDto = mapper.Map<SellerProductResponseDto>(product);
-            return Ok(sellerProductResponseDto);
+            return Ok(product.ToSellerProductDto());
         }
 
         [HttpPatch("{productId}")]
@@ -59,7 +49,7 @@ namespace ECommerce.Controllers.Seller
 
             if (product is null) return NotFound();
 
-            mapper.Map(updateProductDto, product);
+            ProductUpdateMapper.ApplyUpdate(updateProductDto, product);
 
             await unitOfWork.SaveChangesAsync();
 
@@ -69,7 +59,7 @@ namespace ECommerce.Controllers.Seller
         [HttpPost]
         public async Task<IActionResult> AddProduct([FromBody] AddProductDto addProductDto)
         {
-            Product p = mapper.Map<Product>(addProductDto);
+            Product p = addProductDto.ToProduct();
             p.SellerId = sellerId;
 
             productsRepository.CreateProduct(p);

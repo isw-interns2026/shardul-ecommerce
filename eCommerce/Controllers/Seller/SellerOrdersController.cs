@@ -1,6 +1,5 @@
-﻿
-using AutoMapper;
-using ECommerce.Data;
+﻿using ECommerce.Data;
+using ECommerce.Mappings;
 using ECommerce.Models.Domain.Entities;
 using ECommerce.Models.DTO.Seller;
 using ECommerce.Repositories.Interfaces;
@@ -17,29 +16,20 @@ namespace ECommerce.Controllers.Seller
     {
         private readonly Guid sellerId;
         private readonly IOrdersRepository ordersRepository;
-        private readonly IMapper mapper;
         private readonly IUnitOfWork unitOfWork;
 
-        public OrdersController(ICurrentUser currentUser, IOrdersRepository ordersRepository, IMapper mapper, IUnitOfWork unitOfWork)
+        public OrdersController(ICurrentUser currentUser, IOrdersRepository ordersRepository, IUnitOfWork unitOfWork)
         {
             sellerId = currentUser.UserId;
             this.ordersRepository = ordersRepository;
-            this.mapper = mapper;
             this.unitOfWork = unitOfWork;
         }
-
 
         [HttpGet]
         public async Task<IActionResult> GetAllSellerOrders()
         {
             List<Order> orders = await ordersRepository.GetOrdersAsync(new MandatoryUserIdArgument.Seller([sellerId]));
-
-            var sellerOrderResponseDtos = new List<SellerOrderResponseDto>();
-
-            foreach (Order o in orders)
-                sellerOrderResponseDtos.Add(mapper.Map<SellerOrderResponseDto>(o));
-
-            return Ok(sellerOrderResponseDtos);
+            return Ok(orders.Select(o => o.ToSellerOrderDto()).ToList());
         }
 
         [HttpGet("{orderId}")]
@@ -49,8 +39,7 @@ namespace ECommerce.Controllers.Seller
 
             if (order is null) return NotFound();
 
-            var sellerOrderResponseDto = mapper.Map<SellerOrderResponseDto>(order);
-            return Ok(sellerOrderResponseDto);
+            return Ok(order.ToSellerOrderDto());
         }
 
         [HttpPatch("{orderId}")]

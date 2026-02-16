@@ -1,6 +1,5 @@
-﻿using AutoMapper;
+﻿using ECommerce.Mappings;
 using ECommerce.Models.Domain.Entities;
-using ECommerce.Models.DTO.Buyer;
 using ECommerce.Repositories.Interfaces;
 using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -14,13 +13,11 @@ namespace ECommerce.Controllers.Buyer
     public class BuyerOrdersController : ControllerBase
     {
         private readonly IOrdersRepository ordersRepository;
-        private readonly IMapper mapper;
         private readonly Guid buyerId;
 
-        public BuyerOrdersController(IOrdersRepository ordersRepository, IMapper mapper, ICurrentUser currentUser)
+        public BuyerOrdersController(IOrdersRepository ordersRepository, ICurrentUser currentUser)
         {
             this.ordersRepository = ordersRepository;
-            this.mapper = mapper;
             buyerId = currentUser.UserId;
         }
 
@@ -28,13 +25,7 @@ namespace ECommerce.Controllers.Buyer
         public async Task<IActionResult> GetAllBuyerOrders()
         {
             List<Order> orders = await ordersRepository.GetOrdersAsync(new MandatoryUserIdArgument.Buyer([buyerId]));
-
-            var buyerOrderResponseDtos = new List<BuyerOrderResponseDto>();
-
-            foreach (Order o in orders)
-                buyerOrderResponseDtos.Add(mapper.Map<BuyerOrderResponseDto>(o));
-
-            return Ok(buyerOrderResponseDtos);
+            return Ok(orders.Select(o => o.ToBuyerOrderDto()).ToList());
         }
 
         [HttpGet("{orderId}")]
@@ -44,8 +35,7 @@ namespace ECommerce.Controllers.Buyer
 
             if (order is null) return NotFound();
 
-            var buyerOrderResponseDto = mapper.Map<BuyerOrderResponseDto>(order);
-            return Ok(buyerOrderResponseDto);
+            return Ok(order.ToBuyerOrderDto());
         }
     }
 }

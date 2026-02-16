@@ -51,6 +51,20 @@
 - `FluentValidationFilter` in `Services/Implementations/` as global action filter
 - Controllers remain clean — validation is a cross-cutting concern handled in the pipeline
 
+### 6. Mapping — Mapperly Compile-Time Source Generator
+
+**Problem:** AutoMapper performed all mapping at runtime via reflection. Mapping errors (missing properties, type mismatches) were only discovered at runtime. The `ForAllMembers` null-condition pattern for partial updates was a side-effect, not an explicit design choice.
+
+**Decision:** Replaced AutoMapper with Mapperly, a compile-time source generator. All mappings are verified at build time — missing or mismatched properties produce compiler warnings. The generated code is zero-allocation with no reflection. Partial updates use `AllowNullPropertyAssignment = false` on a dedicated `ProductUpdateMapper`. All mappings live in a single static partial class `ECommerceMapper` with extension methods, eliminating the need for DI-injected `IMapper`.
+
+**Changes:**
+- AutoMapper package removed, Riok.Mapperly added
+- Old `CartMappingProfile`, `OrderMappingProfile`, `ProductMappingProfile` deleted
+- New `ECommerceMapper.cs` with all mappings as static extension methods
+- Separate `ProductUpdateMapper` for partial updates with `AllowNullPropertyAssignment = false`
+- Controllers use extension methods directly (`product.ToBuyerProductDto()`) instead of injecting `IMapper`
+- `AddAutoMapper` registration removed from `Program.cs` (Mapperly needs no DI registration)
+
 ---
 
 ## Bugs Found — Status
@@ -75,10 +89,9 @@
 **Description:** `CartItem.Count` initializes to 0. No DB-level check constraint prevents `Count <= 0`. The `Order` table has `CK_Ordered_Product_Count_Positive` but `CartItem` does not.
 **Fix:** Added `CK_CartItem_Count_Positive` check constraint (`"Count" > 0`) in `CartItemConfiguration`. Requires a migration to apply.
 
-### Bug 5: `AddOrUpdateCart` doesn't validate available stock ⬜ TODO
+### Bug 5: `AddOrUpdateCart` doesn't validate available stock ⬜ WON'T FIX
 **Severity:** Low (design choice)
-**Description:** A buyer can add unlimited items to cart regardless of available stock. Stock check only happens at `PlaceOrders` time. Poor UX — buyer discovers insufficient stock only at checkout.
-**Fix:** Consider validating against `AvailableStock` in `AddOrUpdateCartAsync`, or at minimum show a warning on the frontend.
+**Description:** A buyer can add unlimited items to cart regardless of available stock. Stock check only happens at `PlaceOrders` time. This matches the behavior of most eCommerce platforms (Amazon, Shopify) — cart is aspirational, stock is validated at checkout. No change needed.
 
 ### Bug 6: `BuyerPaymentsController` is empty dead code ✅ FIXED
 **Severity:** Low
@@ -120,20 +133,19 @@
 **Description:** Sensitive financial PII stored unencrypted.
 **Fix:** Encrypt at rest or tokenize.
 
-### Bug 14: `DbTransactionFilter` + `StripeWebhookController` interaction ⬜ TODO
+### Bug 14: `DbTransactionFilter` + `StripeWebhookController` interaction ⬜ WON'T FIX
 **Severity:** Low
-**Description:** Webhook is wrapped in the global `DbTransactionFilter`. The reservation service has its own retry loop. Two layers of error handling that can interact unpredictably.
-**Fix:** Consider excluding the webhook controller from the filter, or accept the current behavior with documentation.
+**Description:** Webhook is wrapped in the global `DbTransactionFilter`. The reservation service has its own retry loop inside it. The filter provides rollback safety if the reservation service throws after partial mutations. The reservation service's retry handles concurrency conflicts. These two layers are complementary, not conflicting — the filter is the outer safety net, the retry is the inner recovery mechanism. Documented, no change needed.
 
 ### Bug 15: `StripeService` creates new `StripeClient` per request ✅ FIXED
 **Severity:** Medium
 **Description:** `StripeClient` created in constructor of a scoped service. New HTTP client per request can cause socket exhaustion under load.
 **Fix:** `StripeClient` registered as singleton in DI (`builder.Services.AddSingleton(new Stripe.StripeClient(...))`). `StripeService` now receives it via constructor injection instead of creating it internally.
 
-### Bug 16: AutoMapper `ForAllMembers` null condition on `UpdateProductDto` ⬜ TODO
+### Bug 16: AutoMapper replaced with Mapperly ✅ FIXED (partial)
 **Severity:** Low
-**Description:** PATCH cannot set nullable fields to null. `{"description": null}` is silently ignored by AutoMapper.
-**Fix:** Use a different pattern for partial updates (e.g., `JsonPatchDocument`, or explicit null-vs-absent handling).
+**Description:** PATCH cannot set nullable fields to null. `{"description": null}` is silently ignored by AutoMapper's `ForAllMembers` with null condition.
+**Fix:** Replaced AutoMapper with Mapperly (compile-time source generator). All mappings are now compile-time verified with zero runtime reflection. `ProductUpdateMapper` uses `AllowNullPropertyAssignment = false` — same PATCH-skip-null behavior, but now explicit and intentional rather than a side-effect. Truly clearing nullable fields (distinguishing "not sent" from "sent as null") would require an `Optional<T>` wrapper pattern — deferred as it hasn't been needed yet.
 
 ### Bug 17: No auth guard on frontend buyer routes ✅ FIXED
 **Severity:** Medium
