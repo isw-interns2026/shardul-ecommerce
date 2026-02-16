@@ -1,7 +1,22 @@
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, useNavigate } from "react-router";
 import { cn } from "~/lib/utils";
+import { useEffect } from "react";
 
 export default function NavbarLayout() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      void navigate("/auth/buyer/login", { replace: true });
+    }
+  }, [navigate]);
+
+  // Don't render anything while redirecting
+  if (!localStorage.getItem("accessToken")) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar />
@@ -66,6 +81,3 @@ function NavItem({
     </NavLink>
   );
 }
-
-
-

@@ -135,10 +135,10 @@
 **Description:** PATCH cannot set nullable fields to null. `{"description": null}` is silently ignored by AutoMapper.
 **Fix:** Use a different pattern for partial updates (e.g., `JsonPatchDocument`, or explicit null-vs-absent handling).
 
-### Bug 17: No auth guard on frontend buyer routes ⬜ TODO
+### Bug 17: No auth guard on frontend buyer routes ✅ FIXED
 **Severity:** Medium
 **Description:** Unauthenticated users can navigate to `/buyer`. API returns 401 but no redirect to login. `AuthContext` is commented out.
-**Fix:** Implement auth guard that checks for token and redirects to login.
+**Fix:** Auth guard added to `navbar.tsx` layout — checks `localStorage` for token on mount, redirects to login if absent. All buyer routes are nested under this layout, so one guard protects everything. Additionally, a 401 response interceptor on the axios instance clears the token and redirects to login if the JWT expires mid-session.
 
 ### Bug 18: `view_orders.tsx` references non-existent `Accepted` status ⬜ TODO
 **Severity:** Low
