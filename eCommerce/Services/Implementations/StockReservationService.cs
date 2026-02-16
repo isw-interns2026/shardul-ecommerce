@@ -59,7 +59,7 @@ namespace ECommerce.Services.Implementations
             {
                 var transaction = await FindTransaction(transactionId);
 
-                if (transaction is null || transaction.Status == TransactionStatus.Success)
+                if (transaction is null || transaction.Status != TransactionStatus.Processing)
                     return;
 
                 var orders = await GetOrdersWithProducts(transactionId);
@@ -95,9 +95,38 @@ namespace ECommerce.Services.Implementations
                     await operation();
                     return;
                 }
-                catch (DbUpdateConcurrencyException) when (attempt < MaxRetries)
+                catch (DbUpdateConcurrencyException ex) when (attempt < MaxRetries)
                 {
-                    dbContext.ChangeTracker.Clear();
+                    await RefreshConflictingProducts(ex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Refreshes only the Product entities that failed the concurrency check,
+        /// in a single round trip. Preserves all other tracked entities.
+        /// </summary>
+        private async Task RefreshConflictingProducts(DbUpdateConcurrencyException ex)
+        {
+            var failedProductIds = ex.Entries
+                .Where(e => e.Entity is Product)
+                .Select(e => ((Product)e.Entity).Id)
+                .ToList();
+
+            if (failedProductIds.Count == 0)
+                throw ex;
+
+            var freshProducts = await dbContext.Products
+                .Where(p => failedProductIds.Contains(p.Id))
+                .AsNoTracking()
+                .ToDictionaryAsync(p => p.Id);
+
+            foreach (var entry in ex.Entries)
+            {
+                if (entry.Entity is Product p && freshProducts.TryGetValue(p.Id, out var fresh))
+                {
+                    entry.CurrentValues.SetValues(fresh);
+                    entry.OriginalValues.SetValues(fresh);
                 }
             }
         }
