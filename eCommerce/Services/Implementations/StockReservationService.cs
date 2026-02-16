@@ -19,10 +19,16 @@ namespace ECommerce.Services.Implementations
         public Task ReserveStockForCartItems(List<CartItem> cartItems) =>
             ExecuteWithRetry(async () =>
             {
+                var productIds = cartItems.Select(ci => ci.ProductId).Distinct().ToList();
+
+                var products = await dbContext.Products
+                    .Where(p => productIds.Contains(p.Id))
+                    .ToDictionaryAsync(p => p.Id);
+
                 foreach (var ci in cartItems)
                 {
-                    var product = await dbContext.Products.FindAsync(ci.ProductId)
-                        ?? throw new ProductNotFoundException(ci.ProductId);
+                    if (!products.TryGetValue(ci.ProductId, out var product))
+                        throw new ProductNotFoundException(ci.ProductId);
 
                     if (ci.Count > product.AvailableStock)
                         throw new InsufficientStockException(product);
