@@ -14,7 +14,6 @@ namespace ECommerce.Jobs
         private readonly IStockReservationService reservationService;
         private readonly ILogger<ReservationCleanupJob> logger;
 
-        // v10: constructor injection works directly — no ServiceScope needed
         public ReservationCleanupJob(
             ECommerceDbContext dbContext,
             IStockReservationService reservationService,
@@ -25,7 +24,6 @@ namespace ECommerce.Jobs
             this.logger = logger;
         }
 
-        // v10: 6-part cron (with seconds). "0 */5 * * * *" = at second 0, every 5th minute.
         [TickerFunction(
             functionName: "ExpireStaleReservations",
             cronExpression: "0 */5 * * * *")]
@@ -35,14 +33,21 @@ namespace ECommerce.Jobs
         {
             var cutoff = DateTime.UtcNow - ReservationTimeout;
 
-            var processingTransactions = await dbContext.Set<Transaction>()
-                .Where(t => t.Status == TransactionStatus.Processing)
-                .ToListAsync(cancellationToken);
-
-            var staleTransactionIds = processingTransactions
-                .Where(t => t.CreatedAt < cutoff)
+            // Extract the Unix-ms timestamp from the first 48 bits of the UUIDv7 primary key
+            // and filter server-side instead of loading all Processing transactions into memory.
+            var staleTransactionIds = await dbContext.Set<Transaction>()
+                .FromSqlRaw(
+                    """
+                    SELECT * FROM "Transactions"
+                    WHERE "Status" = 'Processing'
+                      AND to_timestamp(
+                            ('x' || lpad(replace(left("Id"::text, 13), '-', ''), 12, '0'))::bit(48)::bigint
+                            / 1000.0
+                          ) < {0}
+                    """,
+                    cutoff)
                 .Select(t => t.Id)
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             if (staleTransactionIds.Count == 0)
                 return;

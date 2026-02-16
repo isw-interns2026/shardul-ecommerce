@@ -95,10 +95,10 @@
 **Description:** Repositories called `SaveChangesAsync` internally while also being wrapped in a DB transaction filter, creating savepoints and confusing ownership.
 **Fix:** Repositories no longer call `SaveChangesAsync`. Controllers own persistence via `IUnitOfWork`.
 
-### Bug 9: `ReservationCleanupJob` loads all processing transactions into memory ⬜ TODO
+### Bug 9: `ReservationCleanupJob` loads all processing transactions into memory ✅ FIXED
 **Severity:** Medium
 **Description:** Loads every `Processing` transaction into memory every 5 minutes, then filters in-memory by `CreatedAt` (a computed property from UUIDv7, not a DB column). Won't scale.
-**Fix:** Add a persisted `CreatedAt` column, or use raw SQL to extract timestamp from UUIDv7 at the database level.
+**Fix:** Replaced with `FromSqlRaw` that extracts the Unix-ms timestamp from the UUIDv7 primary key using PostgreSQL bit manipulation, filtering server-side. Only stale transaction IDs are returned — no bulk load into memory. No schema change or migration needed.
 
 ### Bug 10: Missing startup validation for required config ✅ FIXED
 **Severity:** P2
