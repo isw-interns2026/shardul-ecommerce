@@ -24,6 +24,9 @@ namespace ECommerce.Models.Domain.Entities
 
             //Composite key (CartId, ProductId)
             builder.HasIndex(ci => new { ci.CartId, ci.ProductId }).IsUnique();
+
+            //Count must be positive
+            builder.ToTable(t => t.HasCheckConstraint("CK_CartItem_Count_Positive", "\"Count\" > 0"));
         }
     }   
 }

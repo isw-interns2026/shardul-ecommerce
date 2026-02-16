@@ -70,20 +70,20 @@
 **Description:** Concurrent webhook retries could both read `Processing` and proceed. Concurrency tokens would cause one to fail, and the retry with `ChangeTracker.Clear()` would re-read `Success` and return early — accidentally correct but fragile.
 **Fix:** The targeted refresh approach makes this explicit and documented. Concurrency tokens still protect against double-execution, but the retry mechanism is now clean rather than accidentally correct.
 
-### Bug 4: `CartItem.Count` has no check constraint ⬜ TODO
+### Bug 4: `CartItem.Count` has no check constraint ✅ FIXED
 **Severity:** Low
 **Description:** `CartItem.Count` initializes to 0. No DB-level check constraint prevents `Count <= 0`. The `Order` table has `CK_Ordered_Product_Count_Positive` but `CartItem` does not.
-**Fix:** Add check constraint `"Count" > 0` on CartItem table.
+**Fix:** Added `CK_CartItem_Count_Positive` check constraint (`"Count" > 0`) in `CartItemConfiguration`. Requires a migration to apply.
 
 ### Bug 5: `AddOrUpdateCart` doesn't validate available stock ⬜ TODO
 **Severity:** Low (design choice)
 **Description:** A buyer can add unlimited items to cart regardless of available stock. Stock check only happens at `PlaceOrders` time. Poor UX — buyer discovers insufficient stock only at checkout.
 **Fix:** Consider validating against `AvailableStock` in `AddOrUpdateCartAsync`, or at minimum show a warning on the frontend.
 
-### Bug 6: `BuyerPaymentsController` is empty dead code ⬜ TODO
+### Bug 6: `BuyerPaymentsController` is empty dead code ✅ FIXED
 **Severity:** Low
 **Description:** Empty controller with `DbContext` injection, wrong route convention (`api/[controller]` vs `buyer/payments`), shows up in Swagger.
-**Fix:** Delete the file.
+**Fix:** File deleted.
 
 ### Bug 7: `ProductsRepository` interface vs implementation mismatch ✅ FIXED
 **Severity:** Medium
@@ -100,10 +100,10 @@
 **Description:** Loads every `Processing` transaction into memory every 5 minutes, then filters in-memory by `CreatedAt` (a computed property from UUIDv7, not a DB column). Won't scale.
 **Fix:** Add a persisted `CreatedAt` column, or use raw SQL to extract timestamp from UUIDv7 at the database level.
 
-### Bug 10: Missing startup validation for required config ⬜ TODO
+### Bug 10: Missing startup validation for required config ✅ FIXED
 **Severity:** P2
 **Description:** `appsettings.json` contains a local dev connection string (`localhost`, `Password=admin`) — not a real secret. However, `JWT:SecretKey`, `Stripe:SecretKey`, and `Stripe:WebhookSecret` are expected in user secrets with no startup validation. If someone clones the repo and runs without configuring user secrets, `configuration["JWT:SecretKey"]` returns null, `Encoding.UTF8.GetBytes(null)` throws `ArgumentNullException` — a cryptic crash instead of a clear message.
-**Fix:** Add startup validation that fails fast with a descriptive error if required config values are missing.
+**Fix:** Added fail-fast config validation at top of `Program.cs`. Checks `JWT:SecretKey`, `JWT:Issuer`, `JWT:Audience`, `Stripe:SecretKey`, `Stripe:WebhookSecret` and throws `InvalidOperationException` with a clear message listing missing keys and how to set them.
 
 ### Bug 11: CORS `AllowAll` with `AllowAnyOrigin` ⬜ TODO
 **Severity:** Medium
@@ -140,10 +140,10 @@
 **Description:** Unauthenticated users can navigate to `/buyer`. API returns 401 but no redirect to login. `AuthContext` is commented out.
 **Fix:** Auth guard added to `navbar.tsx` layout — checks `localStorage` for token on mount, redirects to login if absent. All buyer routes are nested under this layout, so one guard protects everything. Additionally, a 401 response interceptor on the axios instance clears the token and redirects to login if the JWT expires mid-session.
 
-### Bug 18: `view_orders.tsx` references non-existent `Accepted` status ⬜ TODO
+### Bug 18: `view_orders.tsx` references non-existent `Accepted` status ✅ FIXED
 **Severity:** Low
 **Description:** Frontend `statusConfig` includes `Accepted` which doesn't exist in backend `OrderStatus` enum. Dead code, but signals frontend/backend desync.
-**Fix:** Remove `Accepted` from status config.
+**Fix:** Removed `Accepted` entry from `statusConfig` in `view_orders.tsx`.
 
 ### Bug 19: `place_order.tsx` uses `window.location.href` ⬜ INFO
 **Severity:** Info

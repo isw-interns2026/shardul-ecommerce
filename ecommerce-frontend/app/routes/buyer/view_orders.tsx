@@ -11,7 +11,6 @@ import type { OrderStatus } from "~/types/ResponseDto";
 const statusConfig: Record<OrderStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   AwaitingPayment: { label: "Awaiting Payment", variant: "outline" },
   WaitingForSellerToAccept: { label: "Confirmed", variant: "default" },
-  Accepted: { label: "Accepted", variant: "default" },
   InTransit: { label: "In Transit", variant: "secondary" },
   Delivered: { label: "Delivered", variant: "default" },
   Cancelled: { label: "Cancelled", variant: "destructive" },
