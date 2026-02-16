@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Application logs
 Logs/
+
+#Vscode settings folder
+.vscode/
