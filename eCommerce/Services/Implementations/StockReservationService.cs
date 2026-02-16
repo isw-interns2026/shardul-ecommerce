@@ -59,7 +59,7 @@ namespace ECommerce.Services.Implementations
             {
                 var transaction = await FindTransaction(transactionId);
 
-                if (transaction is null || transaction.Status != TransactionStatus.Processing)
+                if (transaction?.Status != TransactionStatus.Processing)
                     return;
 
                 var orders = await GetOrdersWithProducts(transactionId);
