@@ -1,9 +1,8 @@
-﻿using ECommerce.Data;
-using ECommerce.Models.Domain.Entities;
+﻿using ECommerce.Models.Domain.Entities;
+using ECommerce.Repositories.Interfaces;
 using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
 
@@ -15,18 +14,18 @@ namespace ECommerce.Controllers
     public class StripeWebhookController : ControllerBase
     {
         private readonly IStockReservationService reservationService;
-        private readonly ECommerceDbContext dbContext;
+        private readonly ITransactionRepository transactionRepository;
         private readonly string webhookSecret;
         private readonly ILogger<StripeWebhookController> logger;
 
         public StripeWebhookController(
             IStockReservationService reservationService,
-            ECommerceDbContext dbContext,
+            ITransactionRepository transactionRepository,
             IConfiguration configuration,
             ILogger<StripeWebhookController> logger)
         {
             this.reservationService = reservationService;
-            this.dbContext = dbContext;
+            this.transactionRepository = transactionRepository;
             this.logger = logger;
             webhookSecret = configuration["Stripe:WebhookSecret"]
                 ?? throw new InvalidOperationException("Stripe:WebhookSecret is not configured.");
@@ -105,8 +104,7 @@ namespace ECommerce.Controllers
             var session = stripeEvent.Data.Object as Session
                 ?? throw new WebhookSessionNotFoundException(stripeEvent.Id);
 
-            return await dbContext.Set<Transaction>()
-                .FirstOrDefaultAsync(t => t.StripeSessionId == session.Id)
+            return await transactionRepository.GetByStripeSessionIdAsync(session.Id)
                 ?? throw new WebhookTransactionNotFoundException(session.Id);
         }
 

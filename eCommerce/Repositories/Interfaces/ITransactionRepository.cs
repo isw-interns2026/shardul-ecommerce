@@ -5,5 +5,6 @@ namespace ECommerce.Repositories.Interfaces
     public interface ITransactionRepository
     {
         Transaction CreateTransactionForCartItems(List<CartItem> cartItems);
+        Task<Transaction?> GetByStripeSessionIdAsync(string stripeSessionId);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ECommerce.Data;
 using ECommerce.Models.Domain.Entities;
 using ECommerce.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Repositories.Implementations
 {
@@ -31,6 +32,12 @@ namespace ECommerce.Repositories.Implementations
             dbContext.Add(t);
 
             return t;
+        }
+
+        public async Task<Transaction?> GetByStripeSessionIdAsync(string stripeSessionId)
+        {
+            return await dbContext.Transactions
+                .FirstOrDefaultAsync(t => t.StripeSessionId == stripeSessionId);
         }
     }
 }
