@@ -8,6 +8,7 @@ namespace ECommerce.Validators
         public UpdateProductValidator()
         {
             RuleFor(x => x.Sku)
+                .MinimumLength(1)
                 .MaximumLength(50)
                 .When(x => x.Sku is not null);
 
