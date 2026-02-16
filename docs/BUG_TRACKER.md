@@ -89,20 +89,20 @@
 **Description:** Loads every `Processing` transaction into memory every 5 minutes, then filters in-memory by `CreatedAt` (a computed property from UUIDv7, not a DB column). Won't scale.
 **Fix:** Add a persisted `CreatedAt` column, or use raw SQL to extract timestamp from UUIDv7 at the database level.
 
-### Bug 10: Secrets in `appsettings.json` ⬜ TODO
-**Severity:** High
-**Description:** Database password and connection string committed to git. JWT `SecretKey` missing from config throws `ArgumentNullException` at runtime with no graceful message.
-**Fix:** Move all secrets to user secrets / environment variables. Add startup validation for required config values.
+### Bug 10: Missing startup validation for required config ⬜ TODO
+**Severity:** P2
+**Description:** `appsettings.json` contains a local dev connection string (`localhost`, `Password=admin`) — not a real secret. However, `JWT:SecretKey`, `Stripe:SecretKey`, and `Stripe:WebhookSecret` are expected in user secrets with no startup validation. If someone clones the repo and runs without configuring user secrets, `configuration["JWT:SecretKey"]` returns null, `Encoding.UTF8.GetBytes(null)` throws `ArgumentNullException` — a cryptic crash instead of a clear message.
+**Fix:** Add startup validation that fails fast with a descriptive error if required config values are missing.
 
 ### Bug 11: CORS `AllowAll` with `AllowAnyOrigin` ⬜ TODO
 **Severity:** Medium
 **Description:** Wide-open CORS policy. Fine for dev, not for production.
 **Fix:** Restrict to known frontend origins in production.
 
-### Bug 12: No input validation on registration DTOs ⬜ TODO
+### Bug 12: No input validation on registration DTOs ✅ FIXED
 **Severity:** High
 **Description:** No length limits, email format validation, or password strength requirements. A user could register with a 10MB string as their name.
-**Fix:** Add data annotations or FluentValidation to DTOs.
+**Fix:** Added FluentValidation with auto-validation. Validators created for all request DTOs: `BuyerRegisterRequestValidator`, `SellerRegisterRequestValidator`, `LoginRequestValidator`, `AddProductValidator`, `UpdateProductValidator`, `SetStockValidator`, `UpdateOrderValidator`. Validation runs automatically in the MVC pipeline before the controller action executes — invalid requests return 400 with structured error details.
 
 ### Bug 13: `BankAccountNumber` stored in plain text ⬜ TODO
 **Severity:** Medium

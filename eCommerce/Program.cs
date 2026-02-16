@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+using FluentValidation;
 using TickerQ.Dashboard.DependencyInjection;
 using TickerQ.DependencyInjection;
 using TickerQ.EntityFrameworkCore.DbContextFactory;
@@ -34,12 +35,14 @@ builder.Services.AddScoped<DbTransactionFilter>();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<DbTransactionFilter>();
+    options.Filters.Add<FluentValidationFilter>();
 })
 .AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IOrdersRepository, OrdersRepository>();
