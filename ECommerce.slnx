@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="ECommerce.IntegrationTests/ECommerce.IntegrationTests.csproj" />
   <Project Path="ECommerce.Tests/ECommerce.Tests.csproj" />
   <Project Path="eCommerce/ECommerce.csproj" />
   <Folder Name="/docs/">
