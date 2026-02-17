@@ -76,37 +76,40 @@ builder.Services.AddDbContext<ECommerceDbContext>(options =>
 builder.Services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ECommerceDbContext>());
 
 // --- TickerQ with its own built-in DbContext ---
-builder.Services.AddTickerQ(options =>
+if (!builder.Environment.IsEnvironment("Testing"))
 {
-    options.ConfigureScheduler(scheduler =>
+    builder.Services.AddTickerQ(options =>
     {
-        scheduler.MaxConcurrency = 8;
-    });
-
-    options.AddOperationalStore(efOptions =>
-    {
-
-        efOptions.UseTickerQDbContext<TickerQDbContext>(optionsBuilder =>
+        options.ConfigureScheduler(scheduler =>
         {
-            optionsBuilder.UseNpgsql(connectionString,
-                cfg =>
-                {
-                    cfg.MigrationsAssembly(typeof(Program).Assembly.GetName().Name);
-                    cfg.EnableRetryOnFailure(3, TimeSpan.FromSeconds(5), ["40P01"]);
-                });
-        }, schema: "ticker");
-
-        efOptions.SetDbContextPoolSize(34);
-    });
-
-    if (builder.Environment.IsDevelopment())
-    {
-        options.AddDashboard(dashOpt =>
-        {
-            dashOpt.SetBasePath("/tickerq-dashboard");
+            scheduler.MaxConcurrency = 8;
         });
-    }
-});
+
+        options.AddOperationalStore(efOptions =>
+        {
+
+            efOptions.UseTickerQDbContext<TickerQDbContext>(optionsBuilder =>
+            {
+                optionsBuilder.UseNpgsql(connectionString,
+                    cfg =>
+                    {
+                        cfg.MigrationsAssembly(typeof(Program).Assembly.GetName().Name);
+                        cfg.EnableRetryOnFailure(3, TimeSpan.FromSeconds(5), ["40P01"]);
+                    });
+            }, schema: "ticker");
+
+            efOptions.SetDbContextPoolSize(34);
+        });
+
+        if (builder.Environment.IsDevelopment())
+        {
+            options.AddDashboard(dashOpt =>
+            {
+                dashOpt.SetBasePath("/tickerq-dashboard");
+            });
+        }
+    });
+}
 
 
 builder.Services
@@ -180,7 +183,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionHandler();
 
-app.UseTickerQ();
+if (!app.Environment.IsEnvironment("Testing"))
+    app.UseTickerQ();
 
 app.UseAuthentication();
 

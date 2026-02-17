@@ -5,7 +5,7 @@
 Integration tests verify that components work together through real infrastructure — a real PostgreSQL database, the real ASP.NET Core HTTP pipeline, and real EF Core behavior. Dependencies that cross network boundaries (Stripe) are mocked.
 
 **Framework:** xUnit  
-**Database:** Testcontainers (PostgreSQL in Docker)  
+**Database:** Testcontainers (PostgreSQL 17 in Docker — required for `uuidv7()`)  
 **HTTP Pipeline:** WebApplicationFactory  
 **Mocking:** NSubstitute (for IStripeService only)  
 **Project:** `ECommerce.IntegrationTests`
@@ -16,15 +16,19 @@ Integration tests verify that components work together through real infrastructu
 
 ### `PostgresFixture` (collection fixture)
 
-Shared across all test classes via `[CollectionDefinition]`. Starts a PostgreSQL container once, applies EF migrations, provides a connection string. Each test class gets a fresh `ECommerceDbContext` scoped to a transaction that rolls back after each test for isolation.
+Shared across all test classes via `[CollectionDefinition]`. Starts a PostgreSQL 17 container once, creates schema via `EnsureCreatedAsync`, provides a connection string. Test isolation is achieved through unique seeded data per test (GUID-prefixed emails, SKUs).
 
 ### `CustomWebApplicationFactory`
 
 Extends `WebApplicationFactory<Program>`. Overrides:
+- Environment → `Testing` (skips TickerQ registration in `Program.cs`)
 - Connection string → Testcontainers PostgreSQL
-- `IStripeService` → NSubstitute mock (returns fake checkout URLs)
-- Disables TickerQ scheduler (background jobs tested separately)
-- Provides helper methods: `CreateAuthenticatedClient(role, userId)` that injects a JWT into the `HttpClient`
+- `IStripeService` → NSubstitute mock (returns fake checkout URLs, sets `StripeSessionId` on transaction)
+- All required config keys provided via `UseSetting` (JWT, Stripe)
+
+### TickerQ Exclusion
+
+TickerQ's `AddTickerQ()` and `UseTickerQ()` are guarded by `!builder.Environment.IsEnvironment("Testing")` in `Program.cs`. TickerQ registers its own DbContext with a separate `ticker` schema and background workers that start querying immediately on host startup. Since the test database only has the application schema (not TickerQ's), and we test our cleanup job's SQL directly rather than through TickerQ's scheduler, the entire TickerQ subsystem is excluded.
 
 ### `TestDatabaseHelper`
 
@@ -354,6 +358,7 @@ ECommerce.IntegrationTests/
 │   ├── ProductsRepositoryTests.cs
 │   ├── OrdersRepositoryTests.cs
 │   └── TransactionRepositoryTests.cs
+│   └── TransactionRepositoryTests.cs
 ├── CleanupJob/
 │   └── ReservationCleanupQueryTests.cs
 ├── Pipeline/
@@ -383,11 +388,17 @@ ECommerce.IntegrationTests/
 
 ## Total: 118 integration tests across 6 categories
 
-| Category | Tests | What it verifies |
-|----------|-------|------------------|
-| P1 — StockReservationService | 1–17 | Concurrency retry, stock arithmetic, idempotency |
-| P2 — DB Constraints & Translation | 18–29 | Check constraints, unique indexes, exception mapping |
-| P3 — Repositories | 30–61 | CRUD correctness, query scoping, authorization boundaries |
-| P4 — Cleanup Job SQL | 62–66 | UUIDv7 timestamp extraction in real PostgreSQL |
-| P5 — HTTP Pipeline | 67–113 | Auth, filters, controllers, commit/rollback, full request cycle |
-| P6 — Checkout Flows | 114–118 | End-to-end multi-step payment scenarios |
+| Category | Tests | Status | What it verifies |
+|----------|-------|--------|------------------|
+| P1 — StockReservationService | 1–17 | ✅ Done (17/17) | Concurrency retry, stock arithmetic, idempotency |
+| P2 — DB Constraints & Translation | 18–29 | ✅ Done (12/12) | Check constraints, unique indexes, exception mapping |
+| P3 — Repositories | 30–61 | ✅ Done (32/32) | CRUD correctness, query scoping, authorization boundaries |
+| P4 — Cleanup Job SQL | 62–66 | ✅ Done (5/5) | UUIDv7 timestamp extraction in real PostgreSQL |
+| P5 — HTTP Pipeline | 67–113 | ✅ Done (47/47) | Auth, filters, controllers, commit/rollback, full request cycle |
+| P6 — Checkout Flows | 114–118 | ✅ Done (5/5) | End-to-end multi-step payment scenarios |
+
+### Run command
+
+```powershell
+.\scripts\run-tests.ps1 integration
+```

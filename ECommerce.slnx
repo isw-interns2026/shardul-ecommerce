@@ -6,5 +6,6 @@
     <File Path="docs/BUG_TRACKER.md" />
     <File Path="docs/unit-test-plan.md" />
     <File Path="docs/C4_ARCHITECTURE.md" />
+    <File Path="docs/integration-test-plan.md" />
   </Folder>
 </Solution>

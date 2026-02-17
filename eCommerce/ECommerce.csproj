@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="ECommerce.Tests" />
+    <InternalsVisibleTo Include="ECommerce.IntegrationTests" />
   </ItemGroup>
 	
   <ItemGroup>
