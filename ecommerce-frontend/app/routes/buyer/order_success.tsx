@@ -19,8 +19,8 @@ export default function OrderSuccessPage() {
             Order Placed Successfully!
           </h1>
           <p className="text-muted-foreground">
-            Thank you for your purchase. Your payment has been processed and your
-            order is being prepared.
+            Thank you for your purchase. Your payment has been processed and
+            your order is being prepared.
           </p>
 
           {sessionId && (

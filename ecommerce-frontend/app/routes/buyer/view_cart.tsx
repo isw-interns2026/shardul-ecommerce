@@ -17,7 +17,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
-import { CreditCard, Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import {
+  CreditCard,
+  Loader2,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import { useCart } from "~/context/CartContext";
@@ -69,14 +76,17 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
   const deletingIds = new Set(
     fetchers
       .filter((f) => f.state !== "idle" && f.formAction?.includes("delete"))
-      .map((f) => f.formAction?.split("/").pop())
+      .map((f) => f.formAction?.split("/").pop()),
   );
 
   // 2. Identify quantity updates across all active fetchers
   const quantityUpdates = new Map(
     fetchers
       .filter((f) => f.state !== "idle" && f.formData?.has("count"))
-      .map((f) => [f.formData?.get("productId"), Number(f.formData?.get("count"))])
+      .map((f) => [
+        f.formData?.get("productId"),
+        Number(f.formData?.get("count")),
+      ]),
   );
 
   // 3. Create the Optimistic Cart List
@@ -92,7 +102,7 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
   // 4. Calculate Total based on optimistic data
   const cartTotal = optimisticCartItems.reduce(
     (acc, item) => acc + item.price * item.countInCart,
-    0
+    0,
   );
 
   if (optimisticCartItems.length === 0) {
@@ -107,7 +117,7 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
   return (
     <div className="mx-auto max-w-3xl p-6 space-y-6">
       <h1 className="text-2xl font-bold">Shopping Cart</h1>
-      
+
       <div className="space-y-4">
         {optimisticCartItems.map((item) => (
           <CartItem key={item.id} item={item} />
@@ -124,7 +134,11 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
         <CardFooter className="p-6 pt-0">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button size="lg" className="w-full text-base font-bold" disabled={isPlacingOrder}>
+              <Button
+                size="lg"
+                className="w-full text-base font-bold"
+                disabled={isPlacingOrder}
+              >
                 {isPlacingOrder ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -143,13 +157,22 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
                 <AlertDialogTitle>Confirm your order</AlertDialogTitle>
                 <AlertDialogDescription>
                   You are about to place an order for{" "}
-                  <span className="font-semibold text-foreground">₹{cartTotal.toFixed(2)}</span>.
-                  You will be redirected to Stripe to complete payment.
+                  <span className="font-semibold text-foreground">
+                    ₹{cartTotal.toFixed(2)}
+                  </span>
+                  . You will be redirected to Stripe to complete payment.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => placeOrderFetcher.submit(null, { action: "place_order", method: "post" })}>
+                <AlertDialogAction
+                  onClick={() =>
+                    placeOrderFetcher.submit(null, {
+                      action: "place_order",
+                      method: "post",
+                    })
+                  }
+                >
                   Confirm &amp; Pay
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -200,11 +223,7 @@ function CartItem({ item }: { item: BuyerCartItemResponseDto }) {
 
             <fetcher.Form method="post">
               <input type="hidden" name="productId" value={item.id} />
-              <input
-                type="hidden"
-                name="count"
-                value={item.countInCart + 1}
-              />
+              <input type="hidden" name="count" value={item.countInCart + 1} />
               <Button
                 variant="outline"
                 size="icon"
@@ -218,9 +237,9 @@ function CartItem({ item }: { item: BuyerCartItemResponseDto }) {
           </div>
 
           <fetcher.Form method="post" action={`delete/${item.id}`}>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="text-destructive hover:bg-destructive/10"
               type="submit"
             >
@@ -232,8 +251,3 @@ function CartItem({ item }: { item: BuyerCartItemResponseDto }) {
     </Card>
   );
 }
-
-
-
-
-

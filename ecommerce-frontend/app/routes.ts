@@ -1,9 +1,4 @@
-import {
-  index,
-  layout,
-  prefix,
-  route,
-} from "@react-router/dev/routes";
+import { index, layout, prefix, route } from "@react-router/dev/routes";
 
 export default [
   index("routes/home.tsx"),
@@ -11,7 +6,7 @@ export default [
   route("auth/buyer/register", "routes/auth/buyer_register.tsx"),
   // route("auth/seller/login", "routes/auth/seller_login.tsx"),
   // route("auth/seller/register", "routes/auth/seller_register.tsx")
-layout("layouts/navbar.tsx", [
+  layout("layouts/navbar.tsx", [
     ...prefix("buyer", [
       index("routes/buyer/buyer_home.tsx"),
 
@@ -21,7 +16,7 @@ layout("layouts/navbar.tsx", [
       route("orders", "routes/buyer/view_orders.tsx"),
       route("order-success", "routes/buyer/order_success.tsx"),
       route("cart/place_order", "routes/buyer/place_order.tsx"),
-      route("cart/delete/:productId", "routes/buyer/delete_from_cart.tsx")
+      route("cart/delete/:productId", "routes/buyer/delete_from_cart.tsx"),
     ]),
   ]),
 ];

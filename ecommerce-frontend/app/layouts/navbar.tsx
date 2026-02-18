@@ -41,7 +41,7 @@ function NavigationProgress() {
       aria-hidden={!isNavigating}
       className={cn(
         "fixed top-14 left-0 z-40 h-0.5 bg-primary transition-all duration-300 ease-out",
-        isNavigating ? "w-2/3 opacity-100" : "w-full opacity-0"
+        isNavigating ? "w-2/3 opacity-100" : "w-full opacity-0",
       )}
     />
   );
@@ -57,7 +57,7 @@ export function NavBar() {
       localStorage.removeItem("accessToken");
       void navigate("/", { replace: true });
     },
-    [navigate]
+    [navigate],
   );
 
   return (
@@ -65,7 +65,9 @@ export function NavBar() {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 z-50 w-full h-14 bg-background border-b shadow-sm">
         <div className="mx-auto flex h-full max-w-7xl items-center gap-6 px-6">
-          <NavItem to="/buyer" end>All Products</NavItem>
+          <NavItem to="/buyer" end>
+            All Products
+          </NavItem>
           <NavItem to="/buyer/cart">
             Cart
             {cartCount > 0 && (
@@ -112,7 +114,7 @@ function NavItem({
           "text-sm font-medium transition-colors hover:text-primary",
           isActive
             ? "text-primary underline underline-offset-4"
-            : "text-muted-foreground"
+            : "text-muted-foreground",
         )
       }
     >
