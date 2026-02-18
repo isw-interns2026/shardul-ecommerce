@@ -3,16 +3,26 @@ import { useState } from "react";
 import type { BuyerProductResponseDto } from "~/types/ResponseDto";
 import type { Route } from "./+types/view_product";
 import apiClient from "~/axios_instance";
+import axios from "axios";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
-import { Minus, Plus, ShoppingCart, Check } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Check, PackageX } from "lucide-react";
+import { toast } from "sonner";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const productId: string = params.productId;
-  const response = await apiClient.get(`/buyer/products/${productId}`);
-  const productDto: BuyerProductResponseDto = response.data;
-  return { productDto };
+  try {
+    const response = await apiClient.get(`/buyer/products/${productId}`);
+    const productDto: BuyerProductResponseDto = response.data;
+    return { productDto, notFound: false };
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return { productDto: null, notFound: true };
+    }
+    toast.error("Failed to load product. Please try again.");
+    return { productDto: null, notFound: false };
+  }
 }
 
 export async function clientAction({
@@ -23,14 +33,36 @@ export async function clientAction({
   const quantity = formData.get("quantity");
   const productId = params.productId;
 
-  await apiClient.post(`/buyer/cart/${productId}?count=${quantity}`);
-  return { success: true, addedQuantity: Number(quantity) };
+  try {
+    await apiClient.post(`/buyer/cart/${productId}?count=${quantity}`);
+    return { success: true, addedQuantity: Number(quantity) };
+  } catch {
+    toast.error("Failed to add to cart. Please try again.");
+    return { success: false };
+  }
 }
 
 export default function ProductDisplay({ loaderData }: Route.ComponentProps) {
-  const { productDto } = loaderData;
+  const { productDto, notFound } = loaderData;
   const fetcher = useFetcher();
   const [quantity, setQuantity] = useState(1);
+
+  if (notFound) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
+        <PackageX className="h-12 w-12 mb-4 opacity-20" />
+        <p className="text-lg font-medium">Product not found</p>
+      </div>
+    );
+  }
+
+  if (!productDto) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
+        <p className="text-lg font-medium">Failed to load product</p>
+      </div>
+    );
+  }
 
   const isSubmitting = fetcher.state !== "idle";
   const isSuccess =

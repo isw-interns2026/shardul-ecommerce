@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, redirect, useNavigation, Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Field, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import type { Route } from "./+types/buyer_register";
 import { sendBuyerRegisterRequest } from "~/services/AuthService";
+import axios from "axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { 
   UserPlus, 
@@ -17,21 +18,36 @@ import {
   Eye, 
   EyeOff 
 } from "lucide-react";
+import { toast } from "sonner";
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   try {
     await sendBuyerRegisterRequest(formData);
-    return redirect("/auth/buyer/login"); // Redirect to login after successful registration
-  } catch {
-    alert("Registration failed. Try again.")
+    return redirect("/auth/buyer/login");
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 409) {
+        return { error: "This email is already registered." };
+      }
+      if (error.response?.status === 400) {
+        return { error: "Please check your input and try again." };
+      }
+    }
+    return { error: "Registration failed. Please try again later." };
   }
 }
 
-export default function BuyerRegisterPage() {
+export default function BuyerRegisterPage({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const isRegistering = navigation.state === "submitting";
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (actionData?.error) {
+      toast.error(actionData.error);
+    }
+  }, [actionData]);
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 p-4 py-12">

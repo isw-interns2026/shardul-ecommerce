@@ -5,24 +5,40 @@ import { Field, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import type { Route } from "./+types/buyer_login";
 import { sendBuyerLoginRequest } from "~/services/AuthService";
+import axios from "axios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { LogIn, Mail, Lock, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export async function clientAction({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   try {
     await sendBuyerLoginRequest(formData);
     return redirect("/buyer");
-  } catch {
-    alert("Invalid email or password");
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        return { error: "Invalid email or password." };
+      }
+      if (error.response?.status === 400) {
+        return { error: "Please check your input and try again." };
+      }
+    }
+    return { error: "Something went wrong. Please try again later." };
   }
 }
 
-export default function BuyerLoginPage() {
+export default function BuyerLoginPage({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation();
   const isLoggingIn = navigation.state === "submitting";
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (actionData?.error) {
+      toast.error(actionData.error);
+    }
+  }, [actionData]);
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 p-4">

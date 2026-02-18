@@ -16,10 +16,6 @@ layout("layouts/navbar.tsx", [
       index("routes/buyer/buyer_home.tsx"),
 
       route("products/:productId", "routes/buyer/view_product.tsx"),
-      route(
-        "products/:productId/add_to_cart",
-        "routes/buyer/add_to_cart.tsx"
-      ),
 
       route("cart", "routes/buyer/view_cart.tsx"),
       route("orders", "routes/buyer/view_orders.tsx"),

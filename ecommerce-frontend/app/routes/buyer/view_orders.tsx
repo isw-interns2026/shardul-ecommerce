@@ -7,6 +7,7 @@ import { Badge } from "~/components/ui/badge";
 import { Package, MapPin, Calendar } from "lucide-react";
 import { Link } from "react-router";
 import type { OrderStatus } from "~/types/ResponseDto";
+import { toast } from "sonner";
 
 const statusConfig: Record<OrderStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   AwaitingPayment: { label: "Awaiting Payment", variant: "outline" },
@@ -16,9 +17,14 @@ const statusConfig: Record<OrderStatus, { label: string; variant: "default" | "s
 };
 
 export async function clientLoader() {
-  const response = await apiClient.get(`/buyer/orders`);
-  const orders: BuyerOrderResponseDto[] = response.data;
-  return { orders };
+  try {
+    const response = await apiClient.get(`/buyer/orders`);
+    const orders: BuyerOrderResponseDto[] = response.data;
+    return { orders };
+  } catch {
+    toast.error("Failed to load orders. Please refresh the page.");
+    return { orders: [] };
+  }
 }
 
 function getDateFromUuidV7(uuid: string) {

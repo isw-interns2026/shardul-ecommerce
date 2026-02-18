@@ -1,16 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import apiClient from "~/axios_instance";
+import axios from "axios";
 import type { BuyerCartItemResponseDto } from "~/types/ResponseDto";
 import type { Route } from "./+types/view_cart";
-import { useFetcher, useFetchers } from "react-router"; // Added useFetchers
+import { useFetcher, useFetchers } from "react-router";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { CreditCard, Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export async function clientLoader() {
-  const response = await apiClient.get(`/buyer/cart`);
-  const cartItems: BuyerCartItemResponseDto[] = response.data;
-  return { cartItems };
+  try {
+    const response = await apiClient.get(`/buyer/cart`);
+    const cartItems: BuyerCartItemResponseDto[] = response.data;
+    return { cartItems };
+  } catch {
+    toast.error("Failed to load cart. Please refresh the page.");
+    return { cartItems: [] };
+  }
 }
 
 export async function clientAction({ request }: Route.ActionArgs) {
@@ -18,7 +25,15 @@ export async function clientAction({ request }: Route.ActionArgs) {
   const productId = formData.get("productId") as string;
   const count = Number(formData.get("count"));
 
-  await apiClient.post(`/buyer/cart/${productId}?count=${count}`);
+  try {
+    await apiClient.post(`/buyer/cart/${productId}?count=${count}`);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 422) {
+      toast.error("Not enough stock available.");
+    } else {
+      toast.error("Failed to update cart. Please try again.");
+    }
+  }
   return null;
 }
 

@@ -4,18 +4,24 @@ import type { BuyerProductResponseDto } from "~/types/ResponseDto";
 import type { Route } from "./+types/buyer_home";
 import { Link } from "react-router";
 import { Card, CardContent } from "~/components/ui/card";
+import { toast } from "sonner";
 
 export async function clientLoader() {
-  const response = await apiClient.get("/buyer/products");
-  const products: BuyerProductResponseDto[] = response.data;
-  
-  const sortedProducts = [...products].sort((a, b) => {
-    const aStock = a.availableStock > 0 ? 1 : 0;
-    const bStock = b.availableStock > 0 ? 1 : 0;
-    return bStock - aStock; // 1 (in stock) comes before 0 (out of stock)
-  });
+  try {
+    const response = await apiClient.get("/buyer/products");
+    const products: BuyerProductResponseDto[] = response.data;
+    
+    const sortedProducts = [...products].sort((a, b) => {
+      const aStock = a.availableStock > 0 ? 1 : 0;
+      const bStock = b.availableStock > 0 ? 1 : 0;
+      return bStock - aStock;
+    });
 
-  return { products: sortedProducts };
+    return { products: sortedProducts };
+  } catch {
+    toast.error("Failed to load products. Please refresh the page.");
+    return { products: [] };
+  }
 }
 
 export default function BuyerHomePage({ loaderData }: Route.ComponentProps) {

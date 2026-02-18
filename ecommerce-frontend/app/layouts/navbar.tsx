@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router";
 import { cn } from "~/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 export default function NavbarLayout() {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ export default function NavbarLayout() {
     if (!token) {
       void navigate("/auth/buyer/login", { replace: true });
     }
-  }, [navigate]);
+  }, []); // Run only on mount, not on every render
 
   // Don't render anything while redirecting
   if (!localStorage.getItem("accessToken")) {
@@ -28,6 +28,17 @@ export default function NavbarLayout() {
 }
 
 export function NavBar() {
+  const navigate = useNavigate();
+
+  const handleLogout = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      localStorage.removeItem("accessToken");
+      void navigate("/", { replace: true });
+    },
+    [navigate]
+  );
+
   return (
     <>
       {/* Navbar */}
@@ -38,13 +49,13 @@ export function NavBar() {
           <NavItem to="/buyer/orders">Orders</NavItem>
 
           <div className="ml-auto">
-            <NavLink
-              to="/"
-              onClick={() => localStorage.removeItem("accessToken")}
-              className="text-sm font-medium text-destructive hover:underline"
+            <a
+              href="/"
+              onClick={handleLogout}
+              className="text-sm font-medium text-destructive hover:underline cursor-pointer"
             >
               Logout
-            </NavLink>
+            </a>
           </div>
         </div>
       </nav>
