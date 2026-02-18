@@ -40,3 +40,25 @@ export interface BuyerOrderResponseDto {
   deliveryAddress: string;
   orderStatus: OrderStatus;
 }
+
+export interface SellerProductResponseDto {
+  id: string;
+  sku: string;
+  name: string;
+  price: number;
+  countInStock: number;
+  description: string | null;
+  imageUrl: string | null;
+  isListed: boolean;
+}
+
+export interface SellerOrderResponseDto {
+  orderId: string;
+  orderValue: number;
+  productCount: number;
+  productId: string;
+  productName: string;
+  productSku: string;
+  deliveryAddress: string;
+  orderStatus: OrderStatus;
+}

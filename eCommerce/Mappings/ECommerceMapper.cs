@@ -52,6 +52,7 @@ namespace ECommerce.Mappings
         [MapProperty(nameof(Order.Total), nameof(SellerOrderResponseDto.OrderValue))]
         [MapProperty(nameof(Order.Count), nameof(SellerOrderResponseDto.ProductCount))]
         [MapProperty(nameof(Order.Address), nameof(SellerOrderResponseDto.DeliveryAddress))]
+        [MapProperty(nameof(Order.Status), nameof(SellerOrderResponseDto.OrderStatus))]
         [MapProperty(new[] { nameof(Order.Product), nameof(Product.Name) }, new[] { nameof(SellerOrderResponseDto.ProductName) })]
         [MapProperty(new[] { nameof(Order.Product), nameof(Product.Sku) }, new[] { nameof(SellerOrderResponseDto.ProductSku) })]
         private static partial SellerOrderResponseDto MapToSellerOrderDto(Order order);

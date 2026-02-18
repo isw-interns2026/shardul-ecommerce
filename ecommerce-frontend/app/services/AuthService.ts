@@ -15,3 +15,15 @@ export async function sendBuyerLoginRequest(formData: FormData) {
 export async function sendBuyerRegisterRequest(formData: FormData) {
   await apiClient.post("/auth/buyer/register", formDataToObject(formData));
 }
+
+export async function sendSellerLoginRequest(formData: FormData) {
+  const response = await apiClient.post(
+    "/auth/seller/login",
+    formDataToObject(formData),
+  );
+  localStorage.setItem("accessToken", response.data.accessToken);
+}
+
+export async function sendSellerRegisterRequest(formData: FormData) {
+  await apiClient.post("/auth/seller/register", formDataToObject(formData));
+}
