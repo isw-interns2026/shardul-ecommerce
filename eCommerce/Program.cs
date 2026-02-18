@@ -167,7 +167,27 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ECommerceDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation(db.Database.CanConnect() ? "Database connection successful" : "Database connection failed");
+
+    db.Database.Migrate();
+    logger.LogInformation("ECommerce database migration applied successfully");
+
+    var tickerDb = scope.ServiceProvider.GetService<TickerQDbContext>();
+    if (tickerDb is not null)
+    {
+        try
+        {
+            tickerDb.Database.ExecuteSqlRaw("CREATE SCHEMA IF NOT EXISTS ticker");
+            var sp = ((Microsoft.EntityFrameworkCore.Infrastructure.IInfrastructure<IServiceProvider>)tickerDb).Instance;
+            var creator = (Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator)
+                sp.GetRequiredService<Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator>();
+            creator.CreateTables();
+            logger.LogInformation("TickerQ database schema created successfully");
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07") // duplicate_table
+        {
+            logger.LogInformation("TickerQ tables already exist, skipping creation");
+        }
+    }
 }
 
 app.UseCors("AllowAll");

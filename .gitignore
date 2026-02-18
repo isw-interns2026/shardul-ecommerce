@@ -365,6 +365,9 @@ FodyWeavers.xsd
 # Application logs
 Logs/
 
+# Docker secrets
+.env
+
 #Vscode settings folder
 .vscode/
 /coverage/report

@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ecommerce
+      POSTGRES_DB: ecommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecommerce"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: eCommerce/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__PgConnString: "Host=db;Port=5432;Database=ecommerce;Username=ecommerce;Password=ecommerce"
+      JWT__SecretKey: "${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}"
+      JWT__Issuer: "${JWT_ISSUER:-ecommerce-app}"
+      JWT__Audience: "${JWT_AUDIENCE:-ecommerce-app}"
+      Stripe__SecretKey: "${STRIPE_SECRET_KEY:?Set STRIPE_SECRET_KEY in .env}"
+      Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET:?Set STRIPE_WEBHOOK_SECRET in .env}"
+      Stripe__SuccessUrl: "http://localhost:3000/buyer/orders"
+      Stripe__CancelUrl: "http://localhost:3000/buyer/cart"
+
+  frontend:
+    build:
+      context: ecommerce-frontend
+      args:
+        VITE_API_URL: "http://localhost:8080/"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
