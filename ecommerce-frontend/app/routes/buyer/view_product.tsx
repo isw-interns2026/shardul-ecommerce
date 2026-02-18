@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { BuyerProductResponseDto } from "~/types/ResponseDto";
 import type { Route } from "./+types/view_product";
 import apiClient from "~/axios_instance";
@@ -9,6 +9,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { Minus, Plus, ShoppingCart, Check, PackageX } from "lucide-react";
 import { toast } from "sonner";
+import { useCart } from "~/context/CartContext";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const productId: string = params.productId;
@@ -46,6 +47,13 @@ export default function ProductDisplay({ loaderData }: Route.ComponentProps) {
   const { productDto, notFound } = loaderData;
   const fetcher = useFetcher();
   const [quantity, setQuantity] = useState(1);
+  const { refreshCart } = useCart();
+
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      void refreshCart();
+    }
+  }, [fetcher.data, refreshCart]);
 
   if (notFound) {
     return (

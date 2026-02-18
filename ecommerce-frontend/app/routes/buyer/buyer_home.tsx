@@ -10,7 +10,7 @@ export async function clientLoader() {
   try {
     const response = await apiClient.get("/buyer/products");
     const products: BuyerProductResponseDto[] = response.data;
-    
+
     const sortedProducts = [...products].sort((a, b) => {
       const aStock = a.availableStock > 0 ? 1 : 0;
       const bStock = b.availableStock > 0 ? 1 : 0;

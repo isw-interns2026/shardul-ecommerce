@@ -9,7 +9,13 @@ import { Link } from "react-router";
 import type { OrderStatus } from "~/types/ResponseDto";
 import { toast } from "sonner";
 
-const statusConfig: Record<OrderStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const statusConfig: Record<
+  OrderStatus,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
   AwaitingPayment: { label: "Awaiting Payment", variant: "outline" },
   InTransit: { label: "In Transit", variant: "secondary" },
   Delivered: { label: "Delivered", variant: "default" },
@@ -99,10 +105,14 @@ export default function OrdersPage({ loaderData }: Route.ComponentProps) {
                           </span>
                         </span>
                         <Badge
-                          variant={statusConfig[order.orderStatus]?.variant ?? "secondary"}
+                          variant={
+                            statusConfig[order.orderStatus]?.variant ??
+                            "secondary"
+                          }
                           className="h-5 px-1.5 text-[10px] font-bold uppercase"
                         >
-                          {statusConfig[order.orderStatus]?.label ?? order.orderStatus}
+                          {statusConfig[order.orderStatus]?.label ??
+                            order.orderStatus}
                         </Badge>
                       </div>
                     </div>

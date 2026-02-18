@@ -19,6 +19,7 @@ layout("layouts/navbar.tsx", [
 
       route("cart", "routes/buyer/view_cart.tsx"),
       route("orders", "routes/buyer/view_orders.tsx"),
+      route("order-success", "routes/buyer/order_success.tsx"),
       route("cart/place_order", "routes/buyer/place_order.tsx"),
       route("cart/delete/:productId", "routes/buyer/delete_from_cart.tsx")
     ]),

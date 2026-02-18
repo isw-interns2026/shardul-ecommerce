@@ -6,8 +6,21 @@ import type { Route } from "./+types/view_cart";
 import { useFetcher, useFetchers } from "react-router";
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 import { CreditCard, Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useEffect } from "react";
+import { useCart } from "~/context/CartContext";
 
 export async function clientLoader() {
   try {
@@ -42,6 +55,15 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
   const fetchers = useFetchers();
   const placeOrderFetcher = useFetcher();
   const isPlacingOrder = placeOrderFetcher.state !== "idle";
+  const { refreshCart } = useCart();
+
+  // Refresh the navbar cart badge whenever fetchers settle back to idle
+  const anyActive = fetchers.some((f) => f.state !== "idle");
+  useEffect(() => {
+    if (!anyActive) {
+      void refreshCart();
+    }
+  }, [anyActive, refreshCart]);
 
   // 1. Identify items being deleted across all active fetchers
   const deletingIds = new Set(
@@ -100,21 +122,39 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
           </div>
         </CardContent>
         <CardFooter className="p-6 pt-0">
-          <placeOrderFetcher.Form action="place_order" method="post" className="w-full">
-            <Button size="lg" className="w-full text-base font-bold" disabled={isPlacingOrder}>
-              {isPlacingOrder ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="mr-2 h-5 w-5" />
-                  Place Order
-                </>
-              )}
-            </Button>
-          </placeOrderFetcher.Form>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="lg" className="w-full text-base font-bold" disabled={isPlacingOrder}>
+                {isPlacingOrder ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="mr-2 h-5 w-5" />
+                    Place Order
+                  </>
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm your order</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You are about to place an order for{" "}
+                  <span className="font-semibold text-foreground">₹{cartTotal.toFixed(2)}</span>.
+                  You will be redirected to Stripe to complete payment.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => placeOrderFetcher.submit(null, { action: "place_order", method: "post" })}>
+                  Confirm &amp; Pay
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardFooter>
       </Card>
     </div>

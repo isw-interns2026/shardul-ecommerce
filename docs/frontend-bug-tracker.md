@@ -17,9 +17,9 @@
 
 | # | Description | Priority | Status | File(s) |
 |---|-------------|----------|--------|---------|
-| F1 | Loading states / skeleton loaders for all pages | P3 | 🔲 Open | All route files |
+| F1 | Loading states / skeleton loaders for all pages | P3 | ✅ Done | `buyer_home.tsx`, `view_product.tsx`, `view_cart.tsx`, `view_orders.tsx` (HydrateFallback exports) |
 | F2 | Toast notifications via sonner | P3 | ✅ Done | `root.tsx` (Toaster wired), used in all error paths |
 | F3 | Inline error display with retry for API failures | P3 | ✅ Done | `view_product.tsx` (notFound state), others use toast + empty state |
-| F4 | Place order confirmation dialog | P4 | 🔲 Open | `view_cart.tsx` |
-| F5 | Order success page after Stripe redirect | P4 | 🔲 Open | New route |
-| F6 | Cart badge count in navbar | P4 | 🔲 Open | `navbar.tsx` |
+| F4 | Place order confirmation dialog | P4 | ✅ Done | `view_cart.tsx` (AlertDialog before Stripe redirect) |
+| F5 | Order success page after Stripe redirect | P4 | ✅ Done | `order_success.tsx`, `routes.ts`, `appsettings.json` (Stripe SuccessUrl updated) |
+| F6 | Cart badge count in navbar | P4 | ✅ Done | `navbar.tsx`, `CartContext.tsx`, `view_cart.tsx`, `view_product.tsx` |
