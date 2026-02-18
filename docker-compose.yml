@@ -1,31 +1,14 @@
 services:
-  db:
-    image: postgres:18
-    environment:
-      POSTGRES_USER: ecommerce
-      POSTGRES_PASSWORD: ecommerce
-      POSTGRES_DB: ecommerce
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ecommerce"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
   api:
     build:
       context: .
       dockerfile: eCommerce/Dockerfile
     ports:
       - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      ConnectionStrings__PgConnString: "Host=db;Port=5432;Database=ecommerce;Username=ecommerce;Password=ecommerce"
+      ConnectionStrings__PgConnString: "Host=host.docker.internal;Port=5432;Database=ecommerce;User Id=postgres;Password=admin;"
       JWT__SecretKey: "${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}"
       JWT__Issuer: "${JWT_ISSUER:-ecommerce-app}"
       JWT__Audience: "${JWT_AUDIENCE:-ecommerce-app}"
@@ -43,6 +26,3 @@ services:
       - "3000:3000"
     depends_on:
       - api
-
-volumes:
-  pgdata:
