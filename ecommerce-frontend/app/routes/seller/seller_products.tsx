@@ -38,19 +38,25 @@ export default function SellerProductsPage({
   if (!products.length) {
     return (
       <div className="mx-auto max-w-7xl p-6">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 animate-slide-up">
           <h1 className="text-3xl font-bold tracking-tight">My Products</h1>
-          <Button asChild>
+          <Button asChild size="lg" className="font-bold">
             <Link to="/seller/products/new">
               <Plus className="mr-2 h-4 w-4" />
               Add Product
             </Link>
           </Button>
         </div>
-        <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
-          <Package className="h-12 w-12 mb-4 opacity-20" />
-          <p className="text-lg font-medium">No products yet</p>
-          <p className="text-sm mt-1">Add your first product to get started.</p>
+        <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
+          <div className="p-5 rounded-2xl bg-primary/10 mb-6">
+            <Package className="h-10 w-10 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight mb-2">
+            No products yet
+          </h2>
+          <p className="text-muted-foreground max-w-sm">
+            Add your first product to start selling on E-Shop.
+          </p>
         </div>
       </div>
     );
@@ -58,9 +64,17 @@ export default function SellerProductsPage({
 
   return (
     <div className="mx-auto max-w-7xl p-6">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">My Products</h1>
-        <Button asChild>
+      <div className="flex items-center justify-between mb-8 animate-slide-up">
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight">My Products</h1>
+          <Badge
+            variant="secondary"
+            className="text-sm font-bold px-2.5 py-0.5"
+          >
+            {products.length}
+          </Badge>
+        </div>
+        <Button asChild size="lg" className="font-bold">
           <Link to="/seller/products/new">
             <Plus className="mr-2 h-4 w-4" />
             Add Product
@@ -68,7 +82,7 @@ export default function SellerProductsPage({
         </Button>
       </div>
 
-      <div className="rounded-lg border shadow-sm">
+      <div className="rounded-xl border shadow-sm overflow-hidden animate-fade-in">
         <Table>
           <TableHeader>
             <TableRow>
@@ -120,8 +134,8 @@ function ProductRow({
   };
 
   return (
-    <TableRow>
-      <TableCell className="font-medium max-w-[200px] truncate">
+    <TableRow className="hover:bg-muted/50 transition-colors">
+      <TableCell className="font-semibold max-w-[200px] truncate">
         {product.name}
       </TableCell>
       <TableCell>
@@ -155,7 +169,12 @@ function ProductRow({
         )}
       </TableCell>
       <TableCell className="text-right">
-        <Button variant="ghost" size="sm" asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="hover:bg-primary/10 hover:text-primary transition-colors"
+        >
           <Link to={`/seller/products/${product.id}`}>
             <Pencil className="mr-1 h-3.5 w-3.5" />
             Edit

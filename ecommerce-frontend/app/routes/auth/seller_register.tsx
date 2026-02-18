@@ -58,7 +58,7 @@ export default function SellerRegisterPage({
   }, [actionData]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 p-4 py-12">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background p-4 py-12">
       <Link
         to="/"
         className="absolute top-8 left-8 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
@@ -67,7 +67,7 @@ export default function SellerRegisterPage({
         Back to Home
       </Link>
 
-      <Card className="w-full max-w-md border-2 shadow-xl">
+      <Card className="w-full max-w-md border-2 shadow-xl animate-scale-in">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
             <div className="p-3 rounded-full bg-primary/10">

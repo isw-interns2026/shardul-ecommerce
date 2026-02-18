@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { useState, useEffect } from "react";
-import { Form, Link, useNavigation, useRevalidator } from "react-router";
+import { Link, useNavigation, useRevalidator } from "react-router";
 import apiClient from "~/axios_instance";
 import axios from "axios";
 import type { SellerProductResponseDto } from "~/types/ResponseDto";
@@ -24,6 +24,7 @@ import {
   Pencil,
   Save,
   Package,
+  ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -63,7 +64,7 @@ export default function EditProductPage({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
+    <div className="mx-auto max-w-2xl p-6 animate-fade-in">
       <Link
         to="/seller"
         className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-6"
@@ -72,7 +73,7 @@ export default function EditProductPage({ loaderData }: Route.ComponentProps) {
         Back to Products
       </Link>
 
-      <div className="space-y-6">
+      <div className="space-y-6 stagger-children">
         <StockCard product={product} />
         <EditDetailsCard product={product} />
       </div>
@@ -156,6 +157,7 @@ function EditDetailsCard({ product }: { product: SellerProductResponseDto }) {
   const isSubmitting = navigation.state === "submitting";
   const [isListed, setIsListed] = useState(product.isListed);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState(product.imageUrl ?? "");
   const revalidator = useRevalidator();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -277,7 +279,32 @@ function EditDetailsCard({ product }: { product: SellerProductResponseDto }) {
               defaultValue={product.imageUrl ?? ""}
               type="url"
               disabled={isSubmitting}
+              onChange={(e) => setImageUrl(e.target.value)}
             />
+            {/* Image Preview */}
+            {imageUrl && (
+              <div className="mt-2 rounded-lg border overflow-hidden bg-muted/30 aspect-video max-w-xs">
+                <img
+                  src={imageUrl}
+                  alt="Product preview"
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      "hidden",
+                    );
+                  }}
+                  onLoad={(e) => {
+                    e.currentTarget.style.display = "block";
+                    e.currentTarget.nextElementSibling?.classList.add("hidden");
+                  }}
+                />
+                <div className="items-center justify-center h-full text-muted-foreground text-sm gap-2 hidden">
+                  <ImageIcon className="h-4 w-4" />
+                  Invalid image URL
+                </div>
+              </div>
+            )}
           </Field>
 
           <div className="flex items-center gap-3 pt-2">

@@ -4,10 +4,19 @@ import type { BuyerProductResponseDto } from "~/types/ResponseDto";
 import type { Route } from "./+types/view_product";
 import apiClient from "~/axios_instance";
 import axios from "axios";
-import { useFetcher } from "react-router";
+import { useFetcher, Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
-import { Minus, Plus, ShoppingCart, Check, PackageX } from "lucide-react";
+import { Badge } from "~/components/ui/badge";
+import {
+  Minus,
+  Plus,
+  ShoppingCart,
+  Check,
+  PackageX,
+  Package,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "~/context/CartContext";
 
@@ -89,10 +98,24 @@ export default function ProductDisplay({ loaderData }: Route.ComponentProps) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-6 pt-6">
-      <Card className="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden">
+    <div className="mx-auto max-w-6xl px-6 pt-6 animate-fade-in">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
+        <Link
+          to="/buyer"
+          className="hover:text-primary transition-colors font-medium"
+        >
+          Products
+        </Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span className="text-foreground font-medium truncate max-w-50">
+          {productDto.name}
+        </span>
+      </nav>
+
+      <Card className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden border">
         {/* Image Section */}
-        <div className="bg-muted/50 rounded-l-lg h-100 md:h-full overflow-hidden">
+        <div className="bg-linear-to-br from-muted/30 to-muted/80 h-100 md:h-full overflow-hidden">
           {productDto.imageUrl ? (
             <img
               src={productDto.imageUrl}
@@ -101,14 +124,14 @@ export default function ProductDisplay({ loaderData }: Route.ComponentProps) {
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <span className="text-muted-foreground">No image available</span>
+              <Package className="h-16 w-16 text-muted-foreground/20" />
             </div>
           )}
         </div>
 
-        <div className="flex flex-col gap-6 p-6">
+        <div className="flex flex-col gap-6 p-6 md:p-8">
           <CardHeader className="p-0">
-            <div className="space-y-1">
+            <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tight">
                 {productDto.name}
               </h1>

@@ -6,8 +6,22 @@ import { Input } from "~/components/ui/input";
 import type { Route } from "./+types/buyer_login";
 import { sendBuyerLoginRequest } from "~/services/AuthService";
 import axios from "axios";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { LogIn, Mail, Lock, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import {
+  LogIn,
+  Mail,
+  Lock,
+  ArrowLeft,
+  Loader2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -41,24 +55,26 @@ export default function BuyerLoginPage({ actionData }: Route.ComponentProps) {
   }, [actionData]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background p-4">
       {/* Back to Home Link */}
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         className="absolute top-8 left-8 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Home
       </Link>
 
-      <Card className="w-full max-w-md border-2 shadow-xl">
+      <Card className="w-full max-w-md border-2 shadow-xl animate-scale-in">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
             <div className="p-3 rounded-full bg-primary/10">
               <LogIn className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Buyer Login</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            Buyer Login
+          </CardTitle>
           <CardDescription>
             Enter your credentials to access your account
           </CardDescription>
@@ -67,14 +83,16 @@ export default function BuyerLoginPage({ actionData }: Route.ComponentProps) {
         <CardContent>
           <Form method="post" className="space-y-4">
             <Field className="space-y-2">
-              <FieldLabel className="text-sm font-semibold">Email Address</FieldLabel>
+              <FieldLabel className="text-sm font-semibold">
+                Email Address
+              </FieldLabel>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  name="email" 
-                  placeholder="name@example.com" 
-                  type="email" 
-                  required 
+                <Input
+                  name="email"
+                  placeholder="name@example.com"
+                  type="email"
+                  required
                   className="pl-10"
                   disabled={isLoggingIn}
                 />
@@ -82,14 +100,16 @@ export default function BuyerLoginPage({ actionData }: Route.ComponentProps) {
             </Field>
 
             <Field className="space-y-2">
-              <FieldLabel className="text-sm font-semibold">Password</FieldLabel>
+              <FieldLabel className="text-sm font-semibold">
+                Password
+              </FieldLabel>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  name="password" 
-                  placeholder="••••••••" 
-                  type={showPassword ? "text" : "password"} 
-                  required 
+                <Input
+                  name="password"
+                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
+                  required
                   className="pl-10"
                   disabled={isLoggingIn}
                 />
@@ -98,14 +118,18 @@ export default function BuyerLoginPage({ actionData }: Route.ComponentProps) {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </Field>
 
-            <Button 
-              type="submit" 
-              className="w-full h-11 font-bold mt-2" 
+            <Button
+              type="submit"
+              className="w-full h-11 font-bold mt-2"
               disabled={isLoggingIn}
             >
               {isLoggingIn ? (
@@ -120,9 +144,11 @@ export default function BuyerLoginPage({ actionData }: Route.ComponentProps) {
           </Form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
-            <Link 
-              to="/auth/buyer/register" 
+            <span className="text-muted-foreground">
+              Don't have an account?{" "}
+            </span>
+            <Link
+              to="/auth/buyer/register"
               className="font-bold text-primary hover:underline"
             >
               Create an account

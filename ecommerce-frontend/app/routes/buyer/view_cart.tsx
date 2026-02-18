@@ -107,16 +107,31 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
 
   if (optimisticCartItems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
-        <ShoppingBag className="h-12 w-12 mb-4 opacity-20" />
-        <p className="text-lg font-medium">Your cart is empty</p>
+      <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
+        <div className="p-5 rounded-2xl bg-primary/10 mb-6">
+          <ShoppingBag className="h-10 w-10 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight mb-2">
+          Your cart is empty
+        </h2>
+        <p className="text-muted-foreground max-w-sm mb-6">
+          Looks like you haven&apos;t added anything yet.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Shopping Cart</h1>
+    <div className="mx-auto max-w-3xl p-6 space-y-6 animate-fade-in">
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Shopping Cart</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {optimisticCartItems.length} item
+            {optimisticCartItems.length !== 1 && "s"}
+          </p>
+        </div>
+      </div>
 
       <div className="space-y-4">
         {optimisticCartItems.map((item) => (
@@ -124,11 +139,23 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
         ))}
       </div>
 
-      <Card className="bg-muted/30">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex justify-between text-lg font-semibold">
-            <span>Order Total</span>
+      <Card className="bg-muted/30 border-2">
+        <CardContent className="p-6 space-y-3">
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>
+              Subtotal (
+              {optimisticCartItems.reduce((acc, i) => acc + i.countInCart, 0)}{" "}
+              items)
+            </span>
             <span>₹{cartTotal.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Shipping</span>
+            <span className="text-green-600 font-medium">Free</span>
+          </div>
+          <div className="border-t pt-3 flex justify-between text-lg font-bold">
+            <span>Order Total</span>
+            <span className="text-primary">₹{cartTotal.toFixed(2)}</span>
           </div>
         </CardContent>
         <CardFooter className="p-6 pt-0">
@@ -186,14 +213,19 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
 
 function CartItem({ item }: { item: BuyerCartItemResponseDto }) {
   const fetcher = useFetcher();
+  const lineTotal = item.price * item.countInCart;
 
   return (
-    <Card>
-      <CardContent className="flex items-center justify-between py-4">
-        <div className="space-y-1">
-          <div className="font-semibold">{item.name}</div>
-          <div className="text-sm text-muted-foreground">
-            ₹{item.price.toFixed(2)}
+    <Card className="overflow-hidden hover:border-primary/20 transition-colors">
+      <CardContent className="flex items-center justify-between py-4 gap-4">
+        <div className="space-y-1 flex-1 min-w-0">
+          <div className="font-semibold truncate">{item.name}</div>
+          <div className="text-sm text-muted-foreground flex items-center gap-2">
+            <span>₹{item.price.toFixed(2)} each</span>
+            <span className="text-muted-foreground/50">&middot;</span>
+            <span className="font-semibold text-foreground">
+              ₹{lineTotal.toFixed(2)}
+            </span>
           </div>
         </div>
 

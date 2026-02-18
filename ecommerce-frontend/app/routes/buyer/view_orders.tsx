@@ -48,9 +48,16 @@ export default function OrdersPage({ loaderData }: Route.ComponentProps) {
 
   if (!orders.length) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
-        <Package className="h-12 w-12 mb-4 opacity-20" />
-        <p>You have no orders yet.</p>
+      <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
+        <div className="p-5 rounded-2xl bg-primary/10 mb-6">
+          <Package className="h-10 w-10 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight mb-2">
+          No orders yet
+        </h2>
+        <p className="text-muted-foreground max-w-sm">
+          Your order history will appear here once you make your first purchase.
+        </p>
       </div>
     );
   }
@@ -60,8 +67,15 @@ export default function OrdersPage({ loaderData }: Route.ComponentProps) {
   );
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-6 text-2xl font-bold tracking-tight">Order History</h1>
+    <div className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <div className="flex items-end justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Order History</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {sortedOrders.length} order{sortedOrders.length !== 1 && "s"}
+          </p>
+        </div>
+      </div>
 
       <div className="grid gap-3">
         {sortedOrders.map((order) => {
