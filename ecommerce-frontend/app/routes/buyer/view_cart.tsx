@@ -2,10 +2,10 @@
 import apiClient from "~/axios_instance";
 import type { BuyerCartItemResponseDto } from "~/types/ResponseDto";
 import type { Route } from "./+types/view_cart";
-import { Form, useFetcher, useFetchers } from "react-router"; // Added useFetchers
+import { useFetcher, useFetchers } from "react-router"; // Added useFetchers
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { CreditCard, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { CreditCard, Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 
 export async function clientLoader() {
   const response = await apiClient.get(`/buyer/cart`);
@@ -25,6 +25,8 @@ export async function clientAction({ request }: Route.ActionArgs) {
 export default function CartDisplay({ loaderData }: Route.ComponentProps) {
   const { cartItems } = loaderData;
   const fetchers = useFetchers();
+  const placeOrderFetcher = useFetcher();
+  const isPlacingOrder = placeOrderFetcher.state !== "idle";
 
   // 1. Identify items being deleted across all active fetchers
   const deletingIds = new Set(
@@ -83,12 +85,21 @@ export default function CartDisplay({ loaderData }: Route.ComponentProps) {
           </div>
         </CardContent>
         <CardFooter className="p-6 pt-0">
-          <Form action="place_order" method="post" className="w-full">
-            <Button size="lg" className="w-full text-base font-bold">
-              <CreditCard className="mr-2 h-5 w-5" />
-              Place Order
+          <placeOrderFetcher.Form action="place_order" method="post" className="w-full">
+            <Button size="lg" className="w-full text-base font-bold" disabled={isPlacingOrder}>
+              {isPlacingOrder ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="mr-2 h-5 w-5" />
+                  Place Order
+                </>
+              )}
             </Button>
-          </Form>
+          </placeOrderFetcher.Form>
         </CardFooter>
       </Card>
     </div>
@@ -144,6 +155,7 @@ function CartItem({ item }: { item: BuyerCartItemResponseDto }) {
                 size="icon"
                 className="h-8 w-8"
                 type="submit"
+                disabled={item.countInCart >= item.availableStock}
               >
                 <Plus className="h-3 w-3" />
               </Button>
