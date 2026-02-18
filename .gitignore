@@ -368,3 +368,4 @@ Logs/
 #Vscode settings folder
 .vscode/
 /coverage/report
+/.env
