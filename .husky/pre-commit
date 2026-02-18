@@ -1,0 +1,1 @@
+cd ecommerce-frontend && npx lint-staged
