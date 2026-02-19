@@ -13,8 +13,12 @@ namespace ECommerce.Services.Implementations
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            // Don't start a transaction for GET requests. 
-            if (context.HttpContext.Request.Method == HttpMethods.Get)
+            // Don't start a transaction for GET requests or actions that opt out.
+            bool skip = context.HttpContext.Request.Method == HttpMethods.Get
+                || context.ActionDescriptor.EndpointMetadata
+                    .OfType<SkipDbTransactionAttribute>().Any();
+
+            if (skip)
             {
                 await next();
                 return;

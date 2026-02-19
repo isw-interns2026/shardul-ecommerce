@@ -1,6 +1,7 @@
 ﻿using ECommerce.Models.Domain.Entities;
 using ECommerce.Models.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 using System.Reflection;
 
@@ -36,6 +37,9 @@ namespace ECommerce.Data
                 };
             }
         }
+
+        public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+            => Database.BeginTransactionAsync(cancellationToken);
 
         public DbSet<Buyer> Buyers { get; set; }
         public DbSet<Seller> Sellers { get; set; }

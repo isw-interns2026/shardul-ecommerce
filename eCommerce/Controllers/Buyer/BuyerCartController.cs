@@ -3,6 +3,7 @@ using ECommerce.Mappings;
 using ECommerce.Models.Domain.Entities;
 using ECommerce.Models.DTO.Buyer;
 using ECommerce.Repositories.Interfaces;
+using ECommerce.Services.Implementations;
 using ECommerce.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,7 @@ namespace ECommerce.Controllers.Buyer
         private readonly IStockReservationService stockReservationService;
         private readonly IStripeService stripeService;
         private readonly IUnitOfWork unitOfWork;
+        private readonly ILogger<BuyerCartController> logger;
 
         public BuyerCartController(
             IAuthRepository authRepository,
@@ -31,7 +33,8 @@ namespace ECommerce.Controllers.Buyer
             IStockReservationService stockReservationService,
             IStripeService stripeService,
             ICurrentUser currentUser,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ILogger<BuyerCartController> logger)
         {
             this.authRepository = authRepository;
             this.cartRepository = cartRepository;
@@ -40,6 +43,7 @@ namespace ECommerce.Controllers.Buyer
             this.stockReservationService = stockReservationService;
             this.stripeService = stripeService;
             this.unitOfWork = unitOfWork;
+            this.logger = logger;
             buyerId = currentUser.UserId;
         }
 
@@ -87,6 +91,7 @@ namespace ECommerce.Controllers.Buyer
         }
 
         [HttpPost]
+        [SkipDbTransaction]
         public async Task<IActionResult> PlaceOrders()
         {
             List<CartItem> cartItems = await cartRepository.GetBuyerCartItemsAsync(buyerId);
@@ -96,18 +101,36 @@ namespace ECommerce.Controllers.Buyer
 
             Models.Domain.Entities.Buyer b = await authRepository.GetBuyerByIdAsync(buyerId);
 
-            await stockReservationService.ReserveStockForCartItems(cartItems);
+            Transaction t;
 
-            Transaction t = transactionRepository.CreateTransactionForCartItems(cartItems);
-            ordersRepository.CreateOrdersForTransaction(cartItems: cartItems, buyer: b, transaction: t);
+            // ── Phase 1: Reserve stock + create orders (atomic) ──
+            await using (var tx = await unitOfWork.BeginTransactionAsync())
+            {
+                await stockReservationService.ReserveStockForCartItems(cartItems);
 
-            await unitOfWork.SaveChangesAsync();
+                t = transactionRepository.CreateTransactionForCartItems(cartItems);
+                ordersRepository.CreateOrdersForTransaction(cartItems: cartItems, buyer: b, transaction: t);
 
+                await unitOfWork.SaveChangesAsync();
+                await tx.CommitAsync();
+            }
+            // Reservation + orders are now durable. If anything below fails,
+            // the ReservationCleanupJob will expire the stale reservation.
+
+            // ── Phase 2: Create Stripe checkout session ──
             string checkoutUrl = await stripeService.CreateCheckoutSessionAsync(t, cartItems);
+            await unitOfWork.SaveChangesAsync(); // persist StripeSessionId
 
-            await unitOfWork.SaveChangesAsync();
-
-            await cartRepository.ClearCartAsync(buyerId);
+            // ── Phase 3: Best-effort cart clear ──
+            try
+            {
+                await cartRepository.ClearCartAsync(buyerId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex,
+                    "Failed to clear cart for buyer {BuyerId} after order placement", buyerId);
+            }
 
             return Ok(new { checkoutUrl });
         }
